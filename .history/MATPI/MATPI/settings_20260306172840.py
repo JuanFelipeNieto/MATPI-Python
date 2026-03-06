@@ -75,9 +75,9 @@ WSGI_APPLICATION = 'MATPI.wsgi.application'
 DATABASES = {
     'default': {
 'ENGINE': 'django.db.backends.mysql',
-'NAME': 'matpi',
+'NAME': 'agenda',
 'USER': 'root',
-'PASSWORD': '',
+'PASSWORD': '123456789',
 'HOST': 'localhost',
 'PORT': '3306',
     }
