@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}Editar Cliente — Matpi{% endblock %}
+{% block topbar_title %}Editar Cliente{% endblock %}
 
 {% block content %}
 <div class="formulario-seccion">
@@ -8,12 +9,11 @@
 
     <form method="POST" action="{% url 'editar_cliente' %}">
         {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ cliente.id }}">
 
         <div class="form-group">
-            <label for="txt_id">Número de Documento</label>
-            <input type="number" id="txt_id" name="txt_id" value="{{ cliente.id }}" disabled>
-            <!-- Campo oculto para enviar el id real -->
-            <input type="hidden" name="txt_id" value="{{ cliente.id }}">
+            <label>Número de Documento</label>
+            <input type="text" value="{{ cliente.id }}" disabled>
         </div>
 
         <div class="form-group">
@@ -31,7 +31,7 @@
             <select id="txt_cajero" name="txt_cajero">
                 <option value="">— Sin cajero —</option>
                 {% for cajero in cajeros %}
-                <option value="{{ cajero.usuario_id }}" {% if cajero==cliente.cajero %}selected{% endif %}>
+                <option value="{{ cajero.pk }}" {% if cliente.cajero_id==cajero.pk %}selected{% endif %}>
                     {{ cajero }}
                 </option>
                 {% endfor %}

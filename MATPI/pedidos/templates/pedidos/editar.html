@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}Editar Pedido — Matpi{% endblock %}
+{% block topbar_title %}Editar Pedido{% endblock %}
 
 {% block content %}
 <div class="formulario-seccion">
@@ -11,13 +12,13 @@
         <input type="hidden" name="txt_id" value="{{ pedido.id }}">
 
         <div class="form-group">
-            <label>ID del Pedido</label>
-            <input type="number" value="{{ pedido.id }}" disabled>
+            <label>ID (automático)</label>
+            <input type="text" value="#{{ pedido.id }}" disabled>
         </div>
 
         <div class="form-group">
             <label for="txt_fecha">Fecha</label>
-            <input type="date" id="txt_fecha" name="txt_fecha" value="{{ pedido.fecha }}" required>
+            <input type="date" id="txt_fecha" name="txt_fecha" value="{{ pedido.fecha|date:'Y-m-d' }}" required>
         </div>
 
         <div class="form-group">
@@ -28,15 +29,20 @@
 
         <div class="form-group">
             <label for="txt_valor">Valor Total</label>
-            <input type="number" id="txt_valor" name="txt_valor" value="{{ pedido.valor }}" required>
+            <input type="number" id="txt_valor" name="txt_valor" value="{{ pedido.valor }}" min="0" required>
         </div>
 
         <div class="form-group">
             <label for="txt_metodo_pago">Método de Pago</label>
             <select id="txt_metodo_pago" name="txt_metodo_pago" required>
-                {% for val, label in pedido.METODOS_PAGO %}
-                <option value="{{ val }}" {% if pedido.metodo_pago==val %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
+                <option value="Efectivo" {% if pedido.metodo_pago=='Efectivo' %}selected{% endif %}>Efectivo</option>
+                <option value="Tarjeta Débito" {% if pedido.metodo_pago=='Tarjeta Débito' %}selected{% endif %}>Tarjeta
+                    Débito</option>
+                <option value="Tarjeta Crédito" {% if pedido.metodo_pago=='Tarjeta Crédito' %}selected{% endif %}>
+                    Tarjeta Crédito</option>
+                <option value="Nequi" {% if pedido.metodo_pago=='Nequi' %}selected{% endif %}>Nequi</option>
+                <option value="Daviplata" {% if pedido.metodo_pago=='Daviplata' %}selected{% endif %}>Daviplata</option>
+                <option value="PSE" {% if pedido.metodo_pago=='PSE' %}selected{% endif %}>PSE</option>
             </select>
         </div>
 
@@ -53,7 +59,8 @@
             <select id="txt_cliente" name="txt_cliente">
                 <option value="">— Sin cliente —</option>
                 {% for cliente in clientes %}
-                <option value="{{ cliente.id }}" {% if pedido.cliente==cliente %}selected{% endif %}>{{ cliente }}
+                <option value="{{ cliente.id }}" {% if pedido.cliente_id==cliente.id %}selected{% endif %}>
+                    {{ cliente }}
                 </option>
                 {% endfor %}
             </select>
@@ -64,7 +71,20 @@
             <select id="txt_cajero" name="txt_cajero">
                 <option value="">— Sin cajero —</option>
                 {% for cajero in cajeros %}
-                <option value="{{ cajero.usuario_id }}" {% if pedido.cajero==cajero %}selected{% endif %}>{{ cajero }}
+                <option value="{{ cajero.pk }}" {% if pedido.cajero_id==cajero.pk %}selected{% endif %}>
+                    {{ cajero }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_reserva">Reserva (opcional)</label>
+            <select id="txt_reserva" name="txt_reserva">
+                <option value="">— Sin reserva —</option>
+                {% for reserva in reservas %}
+                <option value="{{ reserva.id }}" {% if pedido.reserva_id==reserva.id %}selected{% endif %}>
+                    {{ reserva }}
                 </option>
                 {% endfor %}
             </select>

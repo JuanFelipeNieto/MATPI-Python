@@ -62,15 +62,17 @@ def editar_usuario(request):
         experiencia      = request.POST.get('txt_experiencia')
 
         usuario = Usuario.objects.get(pk=id)
-        usuario.telefono          = telefono
-        usuario.contraseña        = contrasena
+        usuario.telefono           = telefono
         usuario.correo_electronico = correo
-        usuario.estado            = estado
-        usuario.fecha_nacimiento  = fecha_nacimiento
-        usuario.nombre_completo   = nombre_completo
-        usuario.direccion         = direccion
-        usuario.fecha_ingreso     = fecha_ingreso
+        usuario.estado             = estado
+        usuario.fecha_nacimiento   = fecha_nacimiento
+        usuario.nombre_completo    = nombre_completo
+        usuario.direccion          = direccion
+        usuario.fecha_ingreso      = fecha_ingreso
         usuario.experiencia_laboral = experiencia
+        # Solo actualizar contraseña si se proporcionó una nueva
+        if contrasena:
+            usuario.contraseña = contrasena
         usuario.save()
     return redirect('listar_usuarios')
 

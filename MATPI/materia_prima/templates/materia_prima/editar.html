@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}Editar Materia Prima — Matpi{% endblock %}
+{% block topbar_title %}Editar Materia Prima{% endblock %}
 
 {% block content %}
 <div class="formulario-seccion">
@@ -11,8 +12,8 @@
         <input type="hidden" name="txt_id" value="{{ materia_prima.id }}">
 
         <div class="form-group">
-            <label>ID</label>
-            <input type="number" value="{{ materia_prima.id }}" disabled>
+            <label>ID (automático)</label>
+            <input type="text" value="#{{ materia_prima.id }}" disabled>
         </div>
 
         <div class="form-group">
@@ -23,18 +24,25 @@
 
         <div class="form-group">
             <label for="txt_unidad">Unidad de Medida</label>
-            <input type="text" id="txt_unidad" name="txt_unidad" value="{{ materia_prima.unidad_medida|default:'' }}">
+            <input type="text" id="txt_unidad" name="txt_unidad" value="{{ materia_prima.unidad_medida|default:'' }}"
+                placeholder="Ej: kg, litros, unidades">
         </div>
 
         <div class="form-group">
             <label for="txt_cantidad">Cantidad</label>
-            <input type="number" id="txt_cantidad" name="txt_cantidad" value="{{ materia_prima.cantidad }}">
+            <input type="number" id="txt_cantidad" name="txt_cantidad" value="{{ materia_prima.cantidad }}" min="0">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha_ingreso">Fecha de Ingreso</label>
+            <input type="datetime-local" id="txt_fecha_ingreso" name="txt_fecha_ingreso"
+                value="{{ materia_prima.fecha_ingreso|date:'Y-m-d' }}T{{ materia_prima.fecha_ingreso|time:'H:i' }}">
         </div>
 
         <div class="form-group">
             <label for="txt_fecha_vencimiento">Fecha de Vencimiento</label>
             <input type="date" id="txt_fecha_vencimiento" name="txt_fecha_vencimiento"
-                value="{{ materia_prima.fecha_vencimiento|default:'' }}">
+                value="{{ materia_prima.fecha_vencimiento|date:'Y-m-d'|default:'' }}">
         </div>
 
         <button type="submit" class="btn btn-guardar">Actualizar</button>

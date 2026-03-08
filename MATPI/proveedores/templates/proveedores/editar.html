@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}Editar Proveedor — Matpi{% endblock %}
+{% block topbar_title %}Editar Proveedor{% endblock %}
 
 {% block content %}
 <div class="formulario-seccion">
@@ -11,8 +12,8 @@
         <input type="hidden" name="txt_id" value="{{ proveedor.id }}">
 
         <div class="form-group">
-            <label>ID del Proveedor</label>
-            <input type="number" value="{{ proveedor.id }}" disabled>
+            <label>ID (automático)</label>
+            <input type="text" value="#{{ proveedor.id }}" disabled>
         </div>
 
         <div class="form-group">
@@ -40,8 +41,9 @@
             <select id="txt_cajero" name="txt_cajero">
                 <option value="">— Sin cajero —</option>
                 {% for cajero in cajeros %}
-                <option value="{{ cajero.usuario_id }}" {% if proveedor.cajero==cajero %}selected{% endif %}>{{ cajero
-                    }}</option>
+                <option value="{{ cajero.pk }}" {% if proveedor.cajero_id==cajero.pk %}selected{% endif %}>
+                    {{ cajero }}
+                </option>
                 {% endfor %}
             </select>
         </div>

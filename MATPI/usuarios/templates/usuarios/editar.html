@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}Editar Usuario — Matpi{% endblock %}
+{% block topbar_title %}Editar Usuario{% endblock %}
 
 {% block content %}
 <div class="formulario-seccion">
@@ -22,7 +23,7 @@
 
         <div class="form-group">
             <label for="txt_telefono">Teléfono</label>
-            <input type="text" id="txt_telefono" name="txt_telefono" value="{{ usuario.telefono }}" required>
+            <input type="text" id="txt_telefono" name="txt_telefono" value="{{ usuario.telefono|default:'' }}" required>
         </div>
 
         <div class="form-group">
@@ -32,20 +33,45 @@
 
         <div class="form-group">
             <label for="txt_direccion">Dirección</label>
-            <input type="text" id="txt_direccion" name="txt_direccion" value="{{ usuario.direccion }}" required>
+            <input type="text" id="txt_direccion" name="txt_direccion" value="{{ usuario.direccion|default:'' }}"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha_nacimiento">Fecha de Nacimiento</label>
+            <input type="date" id="txt_fecha_nacimiento" name="txt_fecha_nacimiento"
+                value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha_ingreso">Fecha de Ingreso</label>
+            <input type="date" id="txt_fecha_ingreso" name="txt_fecha_ingreso"
+                value="{{ usuario.fecha_ingreso|date:'Y-m-d' }}">
         </div>
 
         <div class="form-group">
             <label for="txt_experiencia">Experiencia Laboral</label>
-            <input type="text" id="txt_experiencia" name="txt_experiencia" value="{{ usuario.experiencia_laboral }}">
+            <input type="text" id="txt_experiencia" name="txt_experiencia"
+                value="{{ usuario.experiencia_laboral|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_contrasena">Contraseña</label>
+            <input type="password" id="txt_contrasena" name="txt_contrasena" placeholder="Dejar vacío para no cambiar">
         </div>
 
         <div class="form-group">
             <label for="txt_estado">Estado</label>
             <select id="txt_estado" name="txt_estado">
-                {% for val, label in usuario.ESTADOS %}
-                <option value="{{ val }}" {% if usuario.estado==val %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
+                <option value="Activo" {% if usuario.estado == "Activo" %}selected{% endif %}>
+                    Activo
+                </option>
+                <option value="Vacaciones" {% if usuario.estado == "Vacaciones" %}selected{% endif %}>
+                    Vacaciones
+                </option>
+                <option value="Inactivo" {% if usuario.estado == "Inactivo" %}selected{% endif %}>
+                    Inactivo
+                </option>
             </select>
         </div>
 

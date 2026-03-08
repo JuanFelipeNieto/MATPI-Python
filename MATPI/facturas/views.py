@@ -18,16 +18,12 @@ def mostrar_registro_factura(request):
 
 def registrar_factura(request):
     if request.method == 'POST':
-        id = request.POST.get('txt_id')
         valor_total = request.POST.get('txt_valor_total')
         descripcion = request.POST.get('txt_descripcion')
-        iva = request.POST.get('txt_iva')
-        pedido_id = request.POST.get('txt_pedido')
-
+        iva         = request.POST.get('txt_iva') or None
+        pedido_id   = request.POST.get('txt_pedido')
         pedido = Pedido.objects.get(pk=pedido_id) if pedido_id else None
-
         Factura.objects.create(
-            id=id,
             valor_total=valor_total,
             descripcion=descripcion,
             iva=iva,
