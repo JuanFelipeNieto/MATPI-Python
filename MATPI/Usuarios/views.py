@@ -1,3 +1,81 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from .models import Usuario
 
 # Create your views here.
+
+def listar_usuarios(request):
+    usuarios = Usuario.objects.all()
+    data = {'usuarios': usuarios}
+    return render(request, 'Usuarios/listar.html', data)
+
+
+def mostrar_registro_usuario(request):
+    return render(request, 'Usuarios/registrar.html')
+
+
+def registrar_usuario(request):
+    if request.method == 'POST':
+        id = request.POST.get('txt_id')
+        telefono = request.POST.get('txt_telefono')
+        contraseña = request.POST.get('txt_contraseña')
+        correo = request.POST.get('txt_correo')
+        estado = request.POST.get('txt_estado')
+        fecha_nacimiento = request.POST.get('txt_fecha_nacimiento')
+        nombre_completo = request.POST.get('txt_nombre_completo')
+        direccion = request.POST.get('txt_direccion')
+        fecha_ingreso = request.POST.get('txt_fecha_ingreso')
+        experiencia = request.POST.get('txt_experiencia')
+
+        Usuario.objects.create(
+            id=id,
+            telefono=telefono,
+            contraseña=contraseña,
+            correo_electronico=correo,
+            estado=estado,
+            fecha_nacimiento=fecha_nacimiento,
+            nombre_completo=nombre_completo,
+            direccion=direccion,
+            fecha_ingreso=fecha_ingreso,
+            experiencia_laboral=experiencia,
+        )
+        return redirect('listar_usuarios')
+    return redirect('mostrar_registro_usuario')
+
+
+def pre_editar_usuario(request, id):
+    usuario = Usuario.objects.get(pk=id)
+    data = {'usuario': usuario}
+    return render(request, 'Usuarios/editar.html', data)
+
+
+def editar_usuario(request):
+    if request.method == 'POST':
+        id = request.POST.get('txt_id')
+        telefono = request.POST.get('txt_telefono')
+        contraseña = request.POST.get('txt_contraseña')
+        correo = request.POST.get('txt_correo')
+        estado = request.POST.get('txt_estado')
+        fecha_nacimiento = request.POST.get('txt_fecha_nacimiento')
+        nombre_completo = request.POST.get('txt_nombre_completo')
+        direccion = request.POST.get('txt_direccion')
+        fecha_ingreso = request.POST.get('txt_fecha_ingreso')
+        experiencia = request.POST.get('txt_experiencia')
+
+        usuario = Usuario.objects.get(pk=id)
+        usuario.telefono = telefono
+        usuario.contraseña = contraseña
+        usuario.correo_electronico = correo
+        usuario.estado = estado
+        usuario.fecha_nacimiento = fecha_nacimiento
+        usuario.nombre_completo = nombre_completo
+        usuario.direccion = direccion
+        usuario.fecha_ingreso = fecha_ingreso
+        usuario.experiencia_laboral = experiencia
+        usuario.save()
+    return redirect('listar_usuarios')
+
+
+def eliminar_usuario(request, id):
+    usuario = Usuario.objects.get(pk=id)
+    usuario.delete()
+    return redirect('listar_usuarios')

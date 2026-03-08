@@ -1,3 +1,65 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from .models import Producto
 
 # Create your views here.
+
+def listar_productos(request):
+    productos = Producto.objects.all()
+    data = {'productos': productos}
+    return render(request, 'productos/listar.html', data)
+
+
+def mostrar_registro_producto(request):
+    return render(request, 'productos/registrar.html')
+
+
+def registrar_producto(request):
+    if request.method == 'POST':
+        id = request.POST.get('txt_id')
+        nombre = request.POST.get('txt_nombre')
+        descripcion = request.POST.get('txt_descripcion')
+        cantidad = request.POST.get('txt_cantidad')
+        precio = request.POST.get('txt_precio')
+        categoria = request.POST.get('txt_categoria')
+
+        Producto.objects.create(
+            id=id,
+            nombre_producto=nombre,
+            descripcion=descripcion,
+            cantidad=cantidad,
+            precio=precio,
+            categoria=categoria,
+        )
+        return redirect('listar_productos')
+    return redirect('mostrar_registro_producto')
+
+
+def pre_editar_producto(request, id):
+    producto = Producto.objects.get(pk=id)
+    data = {'producto': producto}
+    return render(request, 'productos/editar.html', data)
+
+
+def editar_producto(request):
+    if request.method == 'POST':
+        id = request.POST.get('txt_id')
+        nombre = request.POST.get('txt_nombre')
+        descripcion = request.POST.get('txt_descripcion')
+        cantidad = request.POST.get('txt_cantidad')
+        precio = request.POST.get('txt_precio')
+        categoria = request.POST.get('txt_categoria')
+
+        producto = Producto.objects.get(pk=id)
+        producto.nombre_producto = nombre
+        producto.descripcion = descripcion
+        producto.cantidad = cantidad
+        producto.precio = precio
+        producto.categoria = categoria
+        producto.save()
+    return redirect('listar_productos')
+
+
+def eliminar_producto(request, id):
+    producto = Producto.objects.get(pk=id)
+    producto.delete()
+    return redirect('listar_productos')

@@ -1,22 +1,54 @@
-"""
-URL configuration for MATPI project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
 from django.urls import path
+from . import views
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
+urlpatterns=[
+    path('',views.listar_clientes, name='listar_clientes'),
+    path('mostrar_registro_clientes/',views.mostrar_registro_cliente,name='mostrar_registro_cliente'),
+        path('registrar_cliente/',views.registrar_cliente,name='registrar_cliente'),
+        path('pre_editar_cliente/<int:id>',views.pre_editar_cliente,name='pre_editar_cliente'),
+        path('editar_cliente/',views.editar_cliente,name='editar_cliente'),
+    path('eliminar_cliente/<int:id>',views.eliminar_cliente,name='eliminar_cliente'),
+    path('',views.listar_facturas, name='listar_facturas'),
+    path('mostrar_registro_facturas/',views.mostrar_registro_factura,name='mostrar_registro_factura'),
+        path('registrar_factura/',views.registrar_factura,name='registrar_factura'),
+        path('pre_editar_factura/<int:id>',views.pre_editar_factura,name='pre_editar_factura'),
+        path('editar_factura/',views.editar_factura,name='editar_factura'),
+    path('eliminar_factura/<int:id>',views.eliminar_factura,name='eliminar_factura'),
+    path('',views.listar_materia_primas, name='listar_materia_primas'),
+    path('mostrar_registro_materia_primas/',views.mostrar_registro_materia_prima,name='mostrar_registro_materia_prima'),
+        path('registrar_materia_prima/',views.registrar_materia_prima,name='registrar_materia_prima'),
+        path('pre_editar_materia_prima/<int:id>',views.pre_editar_materia_prima,name='pre_editar_materia_prima'),
+        path('editar_materia_prima/',views.editar_materia_prima,name='editar_materia_prima'),
+    path('eliminar_materia_prima/<int:id>',views.eliminar_materia_prima,name='eliminar_materia_prima'),
+    path('',views.listar_pedidos, name='listar_pedidos'),
+    path('mostrar_registro_pedidos/',views.mostrar_registro_pedido,name='mostrar_registro_pedido'),
+        path('registrar_pedido/',views.registrar_pedido,name='registrar_pedido'),
+        path('pre_editar_pedido/<int:id>',views.pre_editar_pedido,name='pre_editar_pedido'),
+        path('editar_pedido/',views.editar_pedido,name='editar_pedido'),
+    path('eliminar_pedido/<int:id>',views.eliminar_pedido,name='eliminar_pedido'),
+    path('',views.listar_productos, name='listar_productos'),
+    path('mostrar_registro_productos/',views.mostrar_registro_producto,name='mostrar_registro_producto'),
+        path('registrar_producto/',views.registrar_producto,name='registrar_producto'),
+        path('pre_editar_producto/<int:id>',views.pre_editar_producto,name='pre_editar_producto'),
+        path('editar_producto/',views.editar_producto,name='editar_producto'),
+    path('eliminar_producto/<int:id>',views.eliminar_producto,name='eliminar_producto'),
+    path('',views.listar_proveedores, name='listar_proveedores'),
+    path('mostrar_registro_proveedores/',views.mostrar_registro_proveedor,name='mostrar_registro_proveedor'),
+        path('registrar_proveedor/',views.registrar_proveedor,name='registrar_proveedor'),
+        path('pre_editar_proveedor/<int:id>',views.pre_editar_proveedor,name='pre_editar_proveedor'),
+        path('editar_proveedor/',views.editar_proveedor,name='editar_proveedor'),
+    path('eliminar_proveedor/<int:id>',views.eliminar_proveedor,name='eliminar_proveedor'),
+    path('',views.listar_reservas, name='listar_reservas'),
+    path('mostrar_registro_reservas/',views.mostrar_registro_reserva,name='mostrar_registro_reserva'),
+        path('registrar_reserva/',views.registrar_reserva,name='registrar_reserva'),
+        path('pre_editar_reserva/<int:id>',views.pre_editar_reserva,name='pre_editar_reserva'),
+        path('editar_reserva/',views.editar_reserva,name='editar_reserva'),
+    path('eliminar_reserva/<int:id>',views.eliminar_reserva,name='eliminar_reserva'),
+    path('',views.listar_usuarios, name='listar_usuarios'),
+    path('mostrar_registro_usuarios/',views.mostrar_registro_usuario,name='mostrar_registro_usuario'),
+        path('registrar_usuario/',views.registrar_usuario,name='registrar_usuario'),
+        path('pre_editar_usuario/<int:id>',views.pre_editar_usuario,name='pre_editar_usuario'),
+        path('editar_usuario/',views.editar_usuario,name='editar_usuario'),
+    path('eliminar_usuario/<int:id>',views.eliminar_usuario,name='eliminar_usuario'),
+    
 ]
