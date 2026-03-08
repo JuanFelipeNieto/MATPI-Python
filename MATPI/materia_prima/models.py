@@ -5,7 +5,7 @@ from productos.models import Producto
 class MateriaPrima(models.Model):
     """Materia prima utilizada en la elaboración de productos."""
 
-    id= models.SmallIntegerField('ID', primary_key=True)
+    id= models.AutoField('ID', primary_key=True)
     nombre_materia_prima = models.CharField('Nombre',max_length=60)
     unidad_medida = models.CharField('Unidad de Medida',max_length=20, blank=True, null=True)
     cantidad = models.SmallIntegerField('Cantidad',default=0)

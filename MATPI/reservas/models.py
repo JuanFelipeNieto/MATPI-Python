@@ -5,7 +5,7 @@ from usuarios.models import Cajero
 class Reserva(models.Model):
     """Reserva asociada a un cajero del sistema."""
 
-    id= models.SmallIntegerField('ID', primary_key=True)
+    id= models.AutoField('ID', primary_key=True)
     fecha= models.DateTimeField('Fecha y Hora')
     estado = models.BooleanField('Estado', default=True)
     observaciones = models.TextField('Observaciones', max_length=255, blank=True, null=True)

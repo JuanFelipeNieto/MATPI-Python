@@ -6,30 +6,30 @@ from .models import Usuario
 def listar_usuarios(request):
     usuarios = Usuario.objects.all()
     data = {'usuarios': usuarios}
-    return render(request, 'Usuarios/listar.html', data)
+    return render(request, 'usuarios/listar.html', data)   # CORRECCIÓN: minúscula
 
 
 def mostrar_registro_usuario(request):
-    return render(request, 'Usuarios/registrar.html')
+    return render(request, 'usuarios/registrar.html')      # CORRECCIÓN: minúscula
 
 
 def registrar_usuario(request):
     if request.method == 'POST':
-        id = request.POST.get('txt_id')
-        telefono = request.POST.get('txt_telefono')
-        contraseña = request.POST.get('txt_contraseña')
-        correo = request.POST.get('txt_correo')
-        estado = request.POST.get('txt_estado')
+        id              = request.POST.get('txt_id')
+        telefono        = request.POST.get('txt_telefono')
+        contrasena      = request.POST.get('txt_contrasena')   # CORRECCIÓN: nombre del campo sin ñ
+        correo          = request.POST.get('txt_correo')
+        estado          = request.POST.get('txt_estado', 'Activo')
         fecha_nacimiento = request.POST.get('txt_fecha_nacimiento')
-        nombre_completo = request.POST.get('txt_nombre_completo')
-        direccion = request.POST.get('txt_direccion')
-        fecha_ingreso = request.POST.get('txt_fecha_ingreso')
-        experiencia = request.POST.get('txt_experiencia')
+        nombre_completo  = request.POST.get('txt_nombre')      # CORRECCIÓN: el template envía 'txt_nombre'
+        direccion        = request.POST.get('txt_direccion')
+        fecha_ingreso    = request.POST.get('txt_fecha_ingreso')
+        experiencia      = request.POST.get('txt_experiencia')
 
         Usuario.objects.create(
             id=id,
             telefono=telefono,
-            contraseña=contraseña,
+            contraseña=contrasena,
             correo_electronico=correo,
             estado=estado,
             fecha_nacimiento=fecha_nacimiento,
@@ -45,31 +45,31 @@ def registrar_usuario(request):
 def pre_editar_usuario(request, id):
     usuario = Usuario.objects.get(pk=id)
     data = {'usuario': usuario}
-    return render(request, 'Usuarios/editar.html', data)
+    return render(request, 'usuarios/editar.html', data)   # CORRECCIÓN: minúscula
 
 
 def editar_usuario(request):
     if request.method == 'POST':
-        id = request.POST.get('txt_id')
-        telefono = request.POST.get('txt_telefono')
-        contraseña = request.POST.get('txt_contraseña')
-        correo = request.POST.get('txt_correo')
-        estado = request.POST.get('txt_estado')
+        id               = request.POST.get('txt_id')
+        telefono         = request.POST.get('txt_telefono')
+        contrasena       = request.POST.get('txt_contrasena')  # CORRECCIÓN: nombre del campo sin ñ
+        correo           = request.POST.get('txt_correo')
+        estado           = request.POST.get('txt_estado', 'Activo')
         fecha_nacimiento = request.POST.get('txt_fecha_nacimiento')
-        nombre_completo = request.POST.get('txt_nombre_completo')
-        direccion = request.POST.get('txt_direccion')
-        fecha_ingreso = request.POST.get('txt_fecha_ingreso')
-        experiencia = request.POST.get('txt_experiencia')
+        nombre_completo  = request.POST.get('txt_nombre')      # CORRECCIÓN: el template envía 'txt_nombre'
+        direccion        = request.POST.get('txt_direccion')
+        fecha_ingreso    = request.POST.get('txt_fecha_ingreso')
+        experiencia      = request.POST.get('txt_experiencia')
 
         usuario = Usuario.objects.get(pk=id)
-        usuario.telefono = telefono
-        usuario.contraseña = contraseña
+        usuario.telefono          = telefono
+        usuario.contraseña        = contrasena
         usuario.correo_electronico = correo
-        usuario.estado = estado
-        usuario.fecha_nacimiento = fecha_nacimiento
-        usuario.nombre_completo = nombre_completo
-        usuario.direccion = direccion
-        usuario.fecha_ingreso = fecha_ingreso
+        usuario.estado            = estado
+        usuario.fecha_nacimiento  = fecha_nacimiento
+        usuario.nombre_completo   = nombre_completo
+        usuario.direccion         = direccion
+        usuario.fecha_ingreso     = fecha_ingreso
         usuario.experiencia_laboral = experiencia
         usuario.save()
     return redirect('listar_usuarios')

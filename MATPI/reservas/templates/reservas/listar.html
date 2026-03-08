@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Reservas — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Reservas</h1>
+
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_reservas' %}">
+                <input type="text" name="buscar" placeholder="Buscar por ID o fecha" value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        <a href="{% url 'mostrar_registro_reserva' %}" class="btn btn-guardar">+ Nueva Reserva</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha y Hora</th>
+                    <th>Estado</th>
+                    <th>Observaciones</th>
+                    <th>Cajero</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reserva in reservas %}
+                <tr>
+                    <td>{{ reserva.id }}</td>
+                    <td>{{ reserva.fecha }}</td>
+                    <td>{% if reserva.estado %}Activa{% else %}Inactiva{% endif %}</td>
+                    <td>{{ reserva.observaciones|default:"—" }}</td>
+                    <td>{{ reserva.cajero|default:"—" }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'pre_editar_reserva' reserva.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_reserva' reserva.id %}" class="btn-danger"
+                            onclick="return confirm('¿Eliminar esta reserva?')">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center;">No hay reservas registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

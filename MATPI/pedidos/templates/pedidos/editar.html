@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Pedido — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Editar Pedido</h1>
+
+    <form method="POST" action="{% url 'editar_pedido' %}">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ pedido.id }}">
+
+        <div class="form-group">
+            <label>ID del Pedido</label>
+            <input type="number" value="{{ pedido.id }}" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha">Fecha</label>
+            <input type="date" id="txt_fecha" name="txt_fecha" value="{{ pedido.fecha }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_numero_orden">Número de Orden</label>
+            <input type="number" id="txt_numero_orden" name="txt_numero_orden" value="{{ pedido.numero_orden }}"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_valor">Valor Total</label>
+            <input type="number" id="txt_valor" name="txt_valor" value="{{ pedido.valor }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_metodo_pago">Método de Pago</label>
+            <select id="txt_metodo_pago" name="txt_metodo_pago" required>
+                {% for val, label in pedido.METODOS_PAGO %}
+                <option value="{{ val }}" {% if pedido.metodo_pago==val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_estado">Estado</label>
+            <select id="txt_estado" name="txt_estado">
+                <option value="1" {% if pedido.estado %}selected{% endif %}>Activo</option>
+                <option value="0" {% if not pedido.estado %}selected{% endif %}>Completado</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_cliente">Cliente</label>
+            <select id="txt_cliente" name="txt_cliente">
+                <option value="">— Sin cliente —</option>
+                {% for cliente in clientes %}
+                <option value="{{ cliente.id }}" {% if pedido.cliente==cliente %}selected{% endif %}>{{ cliente }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_cajero">Cajero</label>
+            <select id="txt_cajero" name="txt_cajero">
+                <option value="">— Sin cajero —</option>
+                {% for cajero in cajeros %}
+                <option value="{{ cajero.usuario_id }}" {% if pedido.cajero==cajero %}selected{% endif %}>{{ cajero }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Actualizar</button>
+        <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

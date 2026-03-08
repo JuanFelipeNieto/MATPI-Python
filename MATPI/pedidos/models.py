@@ -17,7 +17,7 @@ class Pedido(models.Model):
         ('PSE',             'PSE'),
     ]
 
-    id= models.SmallIntegerField('ID', primary_key=True)
+    id= models.AutoField('ID', primary_key=True)
     fecha= models.DateField('Fecha')
     estado= models.BooleanField('Estado', default=True)
     valor= models.PositiveIntegerField('Valor Total')

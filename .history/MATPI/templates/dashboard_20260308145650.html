@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Administrador — Matpi{% endblock %}
+
+{% block content %}
+
+<!-- Dashboard Header -->
+<section id="dashboard" class="dashboard">
+    <div class="dashboard-header">
+        <h1>🍔 Dashboard Matpi</h1>
+        <p>Panel de control de ventas y estadísticas</p>
+    </div>
+
+    <!-- Tarjetas de estadísticas -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-number">{{ total_pedidos }}</div>
+            <div class="stat-label">Pedidos Totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-number">${{ ingresos|floatformat:0 }}</div>
+            <div class="stat-label">Ingresos Totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-number">{{ total_clientes }}</div>
+            <div class="stat-label">Clientes Registrados</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🍔</div>
+            <div class="stat-number">{{ total_productos }}</div>
+            <div class="stat-label">Productos en Menú</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🪑</div>
+            <div class="stat-number">{{ total_reservas }}</div>
+            <div class="stat-label">Reservas</div>
+        </div>
+    </section>
+
+    <!-- Actividad reciente -->
+    <section class="main-content">
+        <div class="content-card">
+            <h3 class="content-title">Actividad Reciente — Últimos Pedidos</h3>
+            {% for pedido in pedidos_recientes %}
+            <div class="activity-item">
+                <div class="activity-icon">📋</div>
+                <div class="activity-content">
+                    <h4>Pedido #{{ pedido.id }} — {{ pedido.metodo_pago }}</h4>
+                    <p>{{ pedido.fecha }} · ${{ pedido.valor }} · {% if pedido.estado %}Activo{% else %}Completado{%
+                        endif %}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color:#888; text-align:center; padding: 20px 0;">No hay pedidos recientes.</p>
+            {% endfor %}
+        </div>
+    </section>
+</section>
+
+<!-- Productos destacados -->
+<section class="productos-dashboard">
+    <h2>Productos Destacados</h2>
+    <div class="producto-lista">
+        {% for producto in productos_top %}
+        <div class="producto">
+            <div class="producto-placeholder">🍔</div>
+            <div class="producto-info">
+                <h3>{{ producto.nombre_producto }}</h3>
+                <p>{{ producto.descripcion|default:"Producto del menú Matpi"|truncatewords:8 }}</p>
+                <div class="producto-ventas">${{ producto.precio }}</div>
+                <div style="font-size:0.8rem; color:#888;">{{ producto.cantidad }} en stock</div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color:#888; text-align:center;">No hay productos registrados aún.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Barras de progreso -->
+<section class="progress-section">
+    <div class="progress-card">
+        <h3 class="chart-title">Reservas Registradas</h3>
+        <p>Meta: 50 reservas</p>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {% widthratio total_reservas 50 100 %}%;"></div>
+        </div>
+        <p><strong>{{ total_reservas }}</strong> reservas completadas</p>
+    </div>
+    <div class="progress-card">
+        <h3 class="chart-title">Pedidos Completados</h3>
+        <p>Meta: 200 pedidos</p>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {% widthratio total_pedidos 200 100 %}%;"></div>
+        </div>
+        <p><strong>{{ total_pedidos }}</strong> pedidos registrados</p>
+    </div>
+</section>
+
+<!-- Accesos rápidos -->
+<section class="accesos-rapidos">
+    <h2>Accesos Rápidos</h2>
+    <div class="accesos-grid">
+        <a href="{% url 'listar_productos' %}" class="acceso-card">
+            <span class="acceso-icon">🍔</span>
+            <span>Productos</span>
+        </a>
+        <a href="{% url 'listar_pedidos' %}" class="acceso-card">
+            <span class="acceso-icon">📋</span>
+            <span>Pedidos</span>
+        </a>
+        <a href="{% url 'listar_reservas' %}" class="acceso-card">
+            <span class="acceso-icon">🪑</span>
+            <span>Reservas</span>
+        </a>
+        <a href="{% url 'listar_clientes' %}" class="acceso-card">
+            <span class="acceso-icon">👥</span>
+            <span>Clientes</span>
+        </a>
+        <a href="{% url 'listar_proveedores' %}" class="acceso-card">
+            <span class="acceso-icon">🚚</span>
+            <span>Proveedores</span>
+        </a>
+        <a href="{% url 'listar_materia_prima' %}" class="acceso-card">
+            <span class="acceso-icon">🥬</span>
+            <span>Materia Prima</span>
+        </a>
+        <a href="{% url 'listar_facturas' %}" class="acceso-card">
+            <span class="acceso-icon">💰</span>
+            <span>Facturas</span>
+        </a>
+        <a href="{% url 'listar_usuarios' %}" class="acceso-card">
+            <span class="acceso-icon">🧑‍💼</span>
+            <span>Usuarios</span>
+        </a>
+    </div>
+</section>
+
+{% endblock %}

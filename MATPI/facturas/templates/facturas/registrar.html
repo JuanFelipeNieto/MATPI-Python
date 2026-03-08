@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Factura — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Factura</h1>
+
+    <form method="POST" action="{% url 'registrar_factura' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="txt_id">ID de la Factura</label>
+            <input type="number" id="txt_id" name="txt_id" placeholder="Ingrese ID" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_valor_total">Valor Total</label>
+            <input type="number" id="txt_valor_total" name="txt_valor_total" placeholder="0" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_iva">IVA (%)</label>
+            <input type="number" step="0.01" id="txt_iva" name="txt_iva" placeholder="Ej: 19.0">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_descripcion">Descripción</label>
+            <textarea id="txt_descripcion" name="txt_descripcion" rows="3"
+                placeholder="Descripción opcional"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_pedido">Pedido</label>
+            <select id="txt_pedido" name="txt_pedido" required>
+                <option value="">— Seleccione pedido —</option>
+                {% for pedido in pedidos %}
+                <option value="{{ pedido.id }}">{{ pedido }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <a href="{% url 'listar_facturas' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

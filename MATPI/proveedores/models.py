@@ -6,7 +6,7 @@ from materia_prima.models import MateriaPrima
 class Proveedor(models.Model):
     """Proveedor de materias primas para el restaurante."""
 
-    id= models.SmallIntegerField('ID', primary_key=True)
+    id= models.AutoField('ID', primary_key=True)
     nombre_proveedor= models.CharField('Nombre del Proveedor', max_length=50)
     direccion= models.CharField('Dirección',max_length=120, blank=True, null=True)
     correo_electronico  = models.EmailField('Correo Electrónico',  max_length=35,  blank=True, null=True)

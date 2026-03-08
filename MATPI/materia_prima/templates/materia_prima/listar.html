@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Materia Prima — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Materia Prima</h1>
+
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_materia_prima' %}">
+                <input type="text" name="buscar" placeholder="Buscar por nombre" value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        <a href="{% url 'mostrar_registro_materia_prima' %}" class="btn btn-guardar">+ Nueva Materia Prima</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Unidad de Medida</th>
+                    <th>Cantidad</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Fecha Vencimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mp in materia_primas %}
+                <tr>
+                    <td>{{ mp.id }}</td>
+                    <td>{{ mp.nombre_materia_prima }}</td>
+                    <td>{{ mp.unidad_medida|default:"—" }}</td>
+                    <td>{{ mp.cantidad }}</td>
+                    <td>{{ mp.fecha_ingreso|default:"—" }}</td>
+                    <td>{{ mp.fecha_vencimiento|default:"—" }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'pre_editar_materia_prima' mp.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_materia_prima' mp.id %}" class="btn-danger"
+                            onclick="return confirm('¿Eliminar esta materia prima?')">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center;">No hay materias primas registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

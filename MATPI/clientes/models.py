@@ -4,7 +4,7 @@ from usuarios.models import Cajero
 class Cliente(models.Model):
     """Cliente registrado en el sistema."""
 
-    id              = models.SmallIntegerField('ID', primary_key=True)
+    id              = models.BigIntegerField('Número de Documento', primary_key=True)
     nombre_completo = models.CharField('Nombre Completo', max_length=40)
     telefono        = models.CharField('Teléfono',        max_length=14, blank=True, null=True)
     cajero          = models.ForeignKey(

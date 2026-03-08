@@ -14,7 +14,7 @@ class Producto(models.Model):
         ('Salsas',              'Salsas'),
     ]
 
-    id= models.SmallIntegerField('ID', primary_key=True)
+    id= models.AutoField('ID', primary_key=True)
     nombre_producto = models.CharField('Nombre del Producto', max_length=50)
     descripcion= models.TextField('Descripción',max_length=255, blank=True, null=True)
     cantidad = models.SmallIntegerField('Cantidad en Stock', default=0)

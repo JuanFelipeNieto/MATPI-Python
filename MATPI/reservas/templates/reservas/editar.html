@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Reserva — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Editar Reserva</h1>
+
+    <form method="POST" action="{% url 'editar_reserva' %}">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ reserva.id }}">
+
+        <div class="form-group">
+            <label>ID de la Reserva</label>
+            <input type="number" value="{{ reserva.id }}" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha">Fecha y Hora</label>
+            <input type="datetime-local" id="txt_fecha" name="txt_fecha"
+                value="{{ reserva.fecha|date:'Y-m-d' }}T{{ reserva.fecha|time:'H:i' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_estado">Estado</label>
+            <select id="txt_estado" name="txt_estado">
+                <option value="1" {% if reserva.estado %}selected{% endif %}>Activa</option>
+                <option value="0" {% if not reserva.estado %}selected{% endif %}>Inactiva</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_observaciones">Observaciones</label>
+            <textarea id="txt_observaciones" name="txt_observaciones"
+                rows="3">{{ reserva.observaciones|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_cajero">Cajero</label>
+            <select id="txt_cajero" name="txt_cajero">
+                <option value="">— Sin cajero —</option>
+                {% for cajero in cajeros %}
+                <option value="{{ cajero.usuario_id }}" {% if reserva.cajero==cajero %}selected{% endif %}>{{ cajero }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Actualizar</button>
+        <a href="{% url 'listar_reservas' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

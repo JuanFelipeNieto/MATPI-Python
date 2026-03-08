@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Gestión de Productos</h1>
+
+    <!-- Buscador + botón nuevo -->
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_productos' %}">
+                <input type="text" name="buscar" placeholder="Buscar por nombre o categoría"
+                    value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        <a href="{% url 'mostrar_registro_producto' %}" class="btn btn-guardar">+ Nuevo Producto</a>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Cantidad en Stock</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.nombre_producto }}</td>
+                    <td>{{ producto.categoria|default:"—" }}</td>
+                    <td>{{ producto.cantidad }}</td>
+                    <td>${{ producto.precio }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'pre_editar_producto' producto.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_producto' producto.id %}" class="btn-danger"
+                            onclick="return confirm('¿Eliminar este producto?')">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center;">No hay productos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

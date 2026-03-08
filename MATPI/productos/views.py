@@ -1,12 +1,10 @@
 from django.shortcuts import render, redirect
 from .models import Producto
 
-# Create your views here.
 
 def listar_productos(request):
     productos = Producto.objects.all()
-    data = {'productos': productos}
-    return render(request, 'productos/listar.html', data)
+    return render(request, 'productos/listar.html', {'productos': productos})
 
 
 def mostrar_registro_producto(request):
@@ -15,15 +13,12 @@ def mostrar_registro_producto(request):
 
 def registrar_producto(request):
     if request.method == 'POST':
-        id = request.POST.get('txt_id')
-        nombre = request.POST.get('txt_nombre')
+        nombre      = request.POST.get('txt_nombre')
         descripcion = request.POST.get('txt_descripcion')
-        cantidad = request.POST.get('txt_cantidad')
-        precio = request.POST.get('txt_precio')
-        categoria = request.POST.get('txt_categoria')
-
+        cantidad    = request.POST.get('txt_cantidad', 0)
+        precio      = request.POST.get('txt_precio')
+        categoria   = request.POST.get('txt_categoria')
         Producto.objects.create(
-            id=id,
             nombre_producto=nombre,
             descripcion=descripcion,
             cantidad=cantidad,
@@ -36,30 +31,27 @@ def registrar_producto(request):
 
 def pre_editar_producto(request, id):
     producto = Producto.objects.get(pk=id)
-    data = {'producto': producto}
-    return render(request, 'productos/editar.html', data)
+    return render(request, 'productos/editar.html', {'producto': producto})
 
 
 def editar_producto(request):
     if request.method == 'POST':
-        id = request.POST.get('txt_id')
-        nombre = request.POST.get('txt_nombre')
+        id          = request.POST.get('txt_id')
+        nombre      = request.POST.get('txt_nombre')
         descripcion = request.POST.get('txt_descripcion')
-        cantidad = request.POST.get('txt_cantidad')
-        precio = request.POST.get('txt_precio')
-        categoria = request.POST.get('txt_categoria')
-
+        cantidad    = request.POST.get('txt_cantidad', 0)
+        precio      = request.POST.get('txt_precio')
+        categoria   = request.POST.get('txt_categoria')
         producto = Producto.objects.get(pk=id)
         producto.nombre_producto = nombre
-        producto.descripcion = descripcion
-        producto.cantidad = cantidad
-        producto.precio = precio
-        producto.categoria = categoria
+        producto.descripcion     = descripcion
+        producto.cantidad        = cantidad
+        producto.precio          = precio
+        producto.categoria       = categoria
         producto.save()
     return redirect('listar_productos')
 
 
 def eliminar_producto(request, id):
-    producto = Producto.objects.get(pk=id)
-    producto.delete()
+    Producto.objects.get(pk=id).delete()
     return redirect('listar_productos')

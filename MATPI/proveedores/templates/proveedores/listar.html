@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Proveedores — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Proveedores</h1>
+
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_proveedores' %}">
+                <input type="text" name="buscar" placeholder="Buscar por nombre o teléfono"
+                    value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        <a href="{% url 'mostrar_registro_proveedor' %}" class="btn btn-guardar">+ Nuevo Proveedor</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Dirección</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proveedor in proveedores %}
+                <tr>
+                    <td>{{ proveedor.id }}</td>
+                    <td>{{ proveedor.nombre_proveedor }}</td>
+                    <td>{{ proveedor.telefono|default:"—" }}</td>
+                    <td>{{ proveedor.correo_electronico|default:"—" }}</td>
+                    <td>{{ proveedor.direccion|default:"—" }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'pre_editar_proveedor' proveedor.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_proveedor' proveedor.id %}" class="btn-danger"
+                            onclick="return confirm('¿Eliminar este proveedor?')">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center;">No hay proveedores registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

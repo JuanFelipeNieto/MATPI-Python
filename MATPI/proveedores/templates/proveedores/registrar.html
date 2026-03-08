@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Proveedor — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Proveedor</h1>
+
+    <form method="POST" action="{% url 'registrar_proveedor' %}">
+        {% csrf_token %}
+
+
+
+        <div class="form-group">
+            <label for="txt_nombre">Nombre del Proveedor</label>
+            <input type="text" id="txt_nombre" name="txt_nombre" placeholder="Nombre del proveedor" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_direccion">Dirección</label>
+            <input type="text" id="txt_direccion" name="txt_direccion" placeholder="Dirección">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_correo">Correo Electrónico</label>
+            <input type="email" id="txt_correo" name="txt_correo" placeholder="correo@ejemplo.com">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_telefono">Teléfono</label>
+            <input type="text" id="txt_telefono" name="txt_telefono" placeholder="Teléfono">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_cajero">Cajero Responsable</label>
+            <select id="txt_cajero" name="txt_cajero">
+                <option value="">— Sin cajero —</option>
+                {% for cajero in cajeros %}
+                <option value="{{ cajero.usuario_id }}">{{ cajero }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <a href="{% url 'listar_proveedores' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

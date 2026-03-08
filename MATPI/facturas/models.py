@@ -5,7 +5,7 @@ from pedidos.models import Pedido
 class Factura(models.Model):
     """Factura generada a partir de un pedido."""
 
-    id           = models.SmallIntegerField('ID', primary_key=True)
+    id           = models.AutoField('ID', primary_key=True)
     valor_total  = models.PositiveIntegerField('Valor Total')
     descripcion  = models.TextField('Descripción',  max_length=255, blank=True, null=True)
     iva          = models.FloatField('IVA (%)',      blank=True, null=True)

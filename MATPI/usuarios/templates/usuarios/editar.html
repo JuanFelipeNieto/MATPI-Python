@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Editar Usuario</h1>
+
+    <form method="POST" action="{% url 'editar_usuario' %}">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ usuario.id }}">
+
+        <div class="form-group">
+            <label>Documento</label>
+            <input type="text" value="{{ usuario.id }}" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_nombre">Nombre Completo</label>
+            <input type="text" id="txt_nombre" name="txt_nombre" value="{{ usuario.nombre_completo }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_telefono">Teléfono</label>
+            <input type="text" id="txt_telefono" name="txt_telefono" value="{{ usuario.telefono }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_correo">Correo Electrónico</label>
+            <input type="email" id="txt_correo" name="txt_correo" value="{{ usuario.correo_electronico }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_direccion">Dirección</label>
+            <input type="text" id="txt_direccion" name="txt_direccion" value="{{ usuario.direccion }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_experiencia">Experiencia Laboral</label>
+            <input type="text" id="txt_experiencia" name="txt_experiencia" value="{{ usuario.experiencia_laboral }}">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_estado">Estado</label>
+            <select id="txt_estado" name="txt_estado">
+                {% for val, label in usuario.ESTADOS %}
+                <option value="{{ val }}" {% if usuario.estado==val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Actualizar</button>
+        <a href="{% url 'listar_usuarios' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
