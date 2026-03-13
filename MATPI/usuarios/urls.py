@@ -2,10 +2,19 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Gestión de Usuarios (CRUD)
     path('', views.listar_usuarios, name='listar_usuarios'),
     path('registrar/', views.mostrar_registro_usuario, name='mostrar_registro_usuario'),
     path('registrar/guardar/', views.registrar_usuario, name='registrar_usuario'),
-    path('editar/<int:id>/', views.pre_editar_usuario, name='pre_editar_usuario'),
+    
+    # Cambiamos <int:id> por <str:id> para que acepte IDs con letras
+    path('editar/<str:id>/', views.pre_editar_usuario, name='pre_editar_usuario'),
     path('editar/guardar/', views.editar_usuario, name='editar_usuario'),
-    path('eliminar/<int:id>/', views.eliminar_usuario, name='eliminar_usuario'),
+    path('eliminar/<str:id>/', views.eliminar_usuario, name='eliminar_usuario'),
+
+    # Autenticación y Dashboards
+    path('login/', views.login_view, name='login'),
+    path('admin-home/', views.home_admin, name='home_admin'),
+    path('caja-home/', views.home_cajero, name='home_cajero'),
+    path('logout/', views.logout_view, name='logout'),
 ]

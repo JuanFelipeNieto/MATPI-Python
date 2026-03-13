@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MATPI</title>
+    <style>
+        :root {
+            --primary: #ff9f00;
+            --primary-h: #e68a00;
+            --primary-light: #ffb84d;
+            --danger: #d32f2f;
+            --danger-h: #b71c1c;
+            --sidebar-w: 260px;
+            --topbar-h: 52px;
+            --black: #000;
+            --white: #fff;
+            --bg: #f5f5f5;
+            --text: #333;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .login-card {
+            background-color: var(--white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 24px;
+            color: var(--black);
+            font-weight: 600;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: var(--primary-h);
+        }
+
+        .error-msg {
+            background-color: #fdecea;
+            color: var(--danger);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid var(--danger);
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                margin: 20px;
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h2>MATPI - Acceso</h2>
+
+        {% if error %}
+            <div class="error-msg">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="txt_id">Documento de Identidad</label>
+                <input type="text" id="txt_id" name="txt_id" placeholder="Ingrese su ID" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_contrasena">Contraseña</label>
+                <input type="password" id="txt_contrasena" name="txt_contrasena" placeholder="********" required>
+            </div>
+
+            <button type="submit" class="btn-login">Iniciar Sesión</button>
+        </form>
+    </div>
+
+</body>
+</html>

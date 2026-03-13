@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard MATPI - Admin</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; display: flex; }
+        .sidebar { width: 250px; background: #ff9f00; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .main { margin-left: 290px; padding: 40px; flex-grow: 1; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .welcome-msg { color: #333; font-size: 24px; }
+        .btn-logout { color: #d32f2f; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>MATPI Admin</h2>
+        <p>👤 {{ request.session.usuario_nombre }}</p>
+        <hr>
+        <nav>
+            <p>📦 Gestión de Inventario</p>
+            <p>👥 Gestión de Usuarios</p>
+            <p>📊 Reportes de Ventas</p>
+        </nav>
+        <br>
+        <a href="{% url 'logout' %}" class="btn-logout">Cerrar Sesión</a>
+    </div>
+
+    <div class="main">
+        <div class="card">
+            <h1 class="welcome-msg">¡Bienvenida, {{ request.session.usuario_nombre }}!</h1>
+            <p>Has ingresado exitosamente al panel de administración de <strong>MATPI</strong>.</p>
+            <hr>
+            <p>Desde aquí puedes gestionar el inventario y controlar los roles de los usuarios.</p>
+        </div>
+    </div>
+</body>
+</html>
