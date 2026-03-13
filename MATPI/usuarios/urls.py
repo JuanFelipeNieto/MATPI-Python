@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     # Gestión de Usuarios (CRUD)
-    path('', views.listar_usuarios, name='listar_usuarios'),
+    path('listado/', views.listar_usuarios, name='listar_usuarios'),
     path('registrar/', views.mostrar_registro_usuario, name='mostrar_registro_usuario'),
     path('registrar/guardar/', views.registrar_usuario, name='registrar_usuario'),
     
@@ -13,8 +13,6 @@ urlpatterns = [
     path('eliminar/<str:id>/', views.eliminar_usuario, name='eliminar_usuario'),
 
     # Autenticación y Dashboards
-    path('login/', views.login_view, name='login'),
-    path('admin-home/', views.home_admin, name='home_admin'),
-    path('caja-home/', views.home_cajero, name='home_cajero'),
+    path('', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
 ]

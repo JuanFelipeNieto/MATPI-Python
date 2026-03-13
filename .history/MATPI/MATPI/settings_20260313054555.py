@@ -132,6 +132,3 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-
-# Configuración de Autenticación
-LOGIN_URL = 'login'

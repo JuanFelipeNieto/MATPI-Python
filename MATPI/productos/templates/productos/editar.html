@@ -41,17 +41,17 @@
             <label for="txt_categoria">Categoría</label>
             <select id="txt_categoria" name="txt_categoria">
                 <option value="">— Seleccione —</option>
-                <option value="Hamburguesas" {% if producto.categoria=='Hamburguesas' %}selected{% endif %}>Hamburguesas
+                <option value="Hamburguesas" {% if producto.categoria == 'Hamburguesas' %}selected{% endif %}>Hamburguesas
                 </option>
-                <option value="Perros Calientes" {% if producto.categoria=='Perros Calientes' %}selected{% endif %}>
+                <option value="Perros Calientes" {% if producto.categoria == 'Perros Calientes' %}selected{% endif %}>
                     Perros Calientes</option>
-                <option value="Entradas y Snacks" {% if producto.categoria=='Entradas y Snacks' %}selected{% endif %}>
+                <option value="Entradas y Snacks" {% if producto.categoria == 'Entradas y Snacks' %}selected{% endif %}>
                     Entradas y Snacks</option>
-                <option value="Combos" {% if producto.categoria=='Combos' %}selected{% endif %}>Combos</option>
-                <option value="Bebidas" {% if producto.categoria=='Bebidas' %}selected{% endif %}>Bebidas</option>
-                <option value="Postres" {% if producto.categoria=='Postres' %}selected{% endif %}>Postres</option>
-                <option value="Adiciones" {% if producto.categoria=='Adiciones' %}selected{% endif %}>Adiciones</option>
-                <option value="Salsas" {% if producto.categoria=='Salsas' %}selected{% endif %}>Salsas</option>
+                <option value="Combos" {% if producto.categoria == 'Combos' %}selected{% endif %}>Combos</option>
+                <option value="Bebidas" {% if producto.categoria == 'Bebidas' %}selected{% endif %}>Bebidas</option>
+                <option value="Postres" {% if producto.categoria == 'Postres' %}selected{% endif %}>Postres</option>
+                <option value="Adiciones" {% if producto.categoria == 'Adiciones' %}selected{% endif %}>Adiciones</option>
+                <option value="Salsas" {% if producto.categoria == 'Salsas' %}selected{% endif %}>Salsas</option>
             </select>
         </div>
 

@@ -3,17 +3,7 @@ from .models import Usuario, Administrador, Cajero
 
 # --- VISTAS DE NAVEGACIÓN Y DASHBOARDS ---
 
-def home_admin(request):
-    # Verificamos que haya una sesión iniciada para evitar accesos no autorizados
-    if 'usuario_id' not in request.session:
-        return redirect('login')
-    return render(request, 'admin_home.html')
-
-def home_cajero(request):
-    if 'usuario_id' not in request.session:
-        return redirect('login')
-    return render(request, 'usuarios/cajero_home.html')
-
+# --- VISTAS DE NAVEGACIÓN Y DASHBOARDS ---
 # --- SISTEMA DE LOGIN Y LOGOUT ---
 
 def login_view(request):
@@ -31,9 +21,9 @@ def login_view(request):
 
             # Redirección según el cargo (Llaves foráneas)
             if Administrador.objects.filter(usuario_id=user_valido.id).exists():
-                return redirect('home_admin')
+                return redirect('dashboard')
             elif Cajero.objects.filter(usuario=user_valido).exists():
-                return redirect('home_cajero')
+                return redirect('dashboard')
             else:
                 return render(request, 'usuarios/login.html', {
                     'error': 'Usuario autenticado, pero no tiene perfil de Administrador o Cajero.'

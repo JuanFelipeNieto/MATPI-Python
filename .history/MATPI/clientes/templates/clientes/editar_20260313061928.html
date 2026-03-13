@@ -31,7 +31,7 @@
             <select id="txt_cajero" name="txt_cajero">
                 <option value="">— Sin cajero —</option>
                 {% for cajero in cajeros %}
-                <option value="{{ cajero.pk }}" {% if cliente.cajero_id == cajero.pk %}selected{% endif %}>
+                <option value="{{ cajero.pk }}" {% if cliente.cajero_id==cajero.pk %}selected{% endif %}>
                     {{ cajero }}
                 </option>
                 {% endfor %}

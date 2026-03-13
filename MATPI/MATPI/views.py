@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from clientes.models import Cliente
 from productos.models import Producto
 from pedidos.models import Pedido
@@ -7,6 +7,8 @@ from reservas.models import Reserva
 
 def dashboard(request):
     """Vista del dashboard principal."""
+    if 'usuario_id' not in request.session:
+        return redirect('login')
     total_clientes   = Cliente.objects.count()
     total_productos  = Producto.objects.count()
     total_pedidos    = Pedido.objects.count()
@@ -30,5 +32,6 @@ def dashboard(request):
         'ingresos':        ingresos,
         'pedidos_recientes': pedidos_recientes,
         'productos_top':   productos_top,
+        'usuario_nombre':  request.session.get('usuario_nombre', 'Administrador'),
     }
     return render(request, 'dashboard.html', context)

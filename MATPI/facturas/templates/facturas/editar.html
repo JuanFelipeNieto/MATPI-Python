@@ -35,7 +35,7 @@
             <label for="txt_pedido">Pedido</label>
             <select id="txt_pedido" name="txt_pedido" required>
                 {% for pedido in pedidos %}
-                <option value="{{ pedido.id }}" {% if factura.pedido==pedido %}selected{% endif %}>{{ pedido }}</option>
+                <option value="{{ pedido.id }}" {% if factura.pedido == pedido %}selected{% endif %}>{{ pedido }}</option>
                 {% endfor %}
             </select>
         </div>
