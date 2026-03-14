@@ -70,6 +70,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                
+                'usuarios.context_processors.roles_usuario',
             ],
         },
     },
@@ -88,7 +90,7 @@ DATABASES = {
 'USER': 'root',
 'PASSWORD': '',
 'HOST': 'localhost',
-'PORT': '3306',
+'PORT': '3307',
     }
 }
 

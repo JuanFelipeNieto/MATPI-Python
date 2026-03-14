@@ -7,6 +7,12 @@
 <div class="formulario-seccion">
     <h1>Editar Pedido</h1>
 
+    {% if not es_admin %}
+    <div class="alert alert-warning">
+        <strong>Modo lectura:</strong> Solo los administradores pueden modificar los datos de este pedido.
+    </div>
+    {% endif %}
+
     <form method="POST" action="{% url 'editar_pedido' %}">
         {% csrf_token %}
         <input type="hidden" name="txt_id" value="{{ pedido.id }}">
@@ -18,28 +24,28 @@
 
         <div class="form-group">
             <label for="txt_fecha">Fecha</label>
-            <input type="date" id="txt_fecha" name="txt_fecha" value="{{ pedido.fecha|date:'Y-m-d' }}" required>
+            <input type="date" id="txt_fecha" name="txt_fecha" value="{{ pedido.fecha|date:'Y-m-d' }}" required 
+            {% if not es_admin %} disabled {% endif %}>
         </div>
 
         <div class="form-group">
             <label for="txt_numero_orden">Número de Orden</label>
             <input type="number" id="txt_numero_orden" name="txt_numero_orden" value="{{ pedido.numero_orden }}"
-                required>
+                required {% if not es_admin %} disabled {% endif %}>
         </div>
 
         <div class="form-group">
             <label for="txt_valor">Valor Total</label>
-            <input type="number" id="txt_valor" name="txt_valor" value="{{ pedido.valor }}" min="0" required>
+            <input type="number" id="txt_valor" name="txt_valor" value="{{ pedido.valor }}" min="0" required
+            {% if not es_admin %} disabled {% endif %}>
         </div>
 
         <div class="form-group">
             <label for="txt_metodo_pago">Método de Pago</label>
-            <select id="txt_metodo_pago" name="txt_metodo_pago" required>
+            <select id="txt_metodo_pago" name="txt_metodo_pago" required {% if not es_admin %} disabled {% endif %}>
                 <option value="Efectivo" {% if pedido.metodo_pago == 'Efectivo' %}selected{% endif %}>Efectivo</option>
-                <option value="Tarjeta Débito" {% if pedido.metodo_pago == 'Tarjeta Débito' %}selected{% endif %}>Tarjeta
-                    Débito</option>
-                <option value="Tarjeta Crédito" {% if pedido.metodo_pago == 'Tarjeta Crédito' %}selected{% endif %}>
-                    Tarjeta Crédito</option>
+                <option value="Tarjeta Débito" {% if pedido.metodo_pago == 'Tarjeta Débito' %}selected{% endif %}>Tarjeta Débito</option>
+                <option value="Tarjeta Crédito" {% if pedido.metodo_pago == 'Tarjeta Crédito' %}selected{% endif %}>Tarjeta Crédito</option>
                 <option value="Nequi" {% if pedido.metodo_pago == 'Nequi' %}selected{% endif %}>Nequi</option>
                 <option value="Daviplata" {% if pedido.metodo_pago == 'Daviplata' %}selected{% endif %}>Daviplata</option>
                 <option value="PSE" {% if pedido.metodo_pago == 'PSE' %}selected{% endif %}>PSE</option>
@@ -48,7 +54,7 @@
 
         <div class="form-group">
             <label for="txt_estado">Estado</label>
-            <select id="txt_estado" name="txt_estado">
+            <select id="txt_estado" name="txt_estado" {% if not es_admin %} disabled {% endif %}>
                 <option value="1" {% if pedido.estado %}selected{% endif %}>Activo</option>
                 <option value="0" {% if not pedido.estado %}selected{% endif %}>Completado</option>
             </select>
@@ -56,7 +62,7 @@
 
         <div class="form-group">
             <label for="txt_cliente">Cliente</label>
-            <select id="txt_cliente" name="txt_cliente">
+            <select id="txt_cliente" name="txt_cliente" {% if not es_admin %} disabled {% endif %}>
                 <option value="">— Sin cliente —</option>
                 {% for cliente in clientes %}
                 <option value="{{ cliente.id }}" {% if pedido.cliente_id == cliente.id %}selected{% endif %}>
@@ -68,7 +74,7 @@
 
         <div class="form-group">
             <label for="txt_cajero">Cajero</label>
-            <select id="txt_cajero" name="txt_cajero">
+            <select id="txt_cajero" name="txt_cajero" {% if not es_admin %} disabled {% endif %}>
                 <option value="">— Sin cajero —</option>
                 {% for cajero in cajeros %}
                 <option value="{{ cajero.pk }}" {% if pedido.cajero_id == cajero.pk %}selected{% endif %}>
@@ -80,7 +86,7 @@
 
         <div class="form-group">
             <label for="txt_reserva">Reserva (opcional)</label>
-            <select id="txt_reserva" name="txt_reserva">
+            <select id="txt_reserva" name="txt_reserva" {% if not es_admin %} disabled {% endif %}>
                 <option value="">— Sin reserva —</option>
                 {% for reserva in reservas %}
                 <option value="{{ reserva.id }}" {% if pedido.reserva_id == reserva.id %}selected{% endif %}>
@@ -90,8 +96,13 @@
             </select>
         </div>
 
-        <button type="submit" class="btn btn-guardar">Actualizar</button>
-        <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar">Cancelar</a>
+        {% if es_admin %}
+            <button type="submit" class="btn btn-guardar">Actualizar</button>
+        {% endif %}
+        
+        <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar">
+            {% if es_admin %}Cancelar{% else %}Volver{% endif %}
+        </a>
     </form>
 </div>
 {% endblock %}

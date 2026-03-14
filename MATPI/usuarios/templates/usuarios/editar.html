@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="formulario-seccion">
-    <h1>Editar Usuario</h1>
+    <h1>{% if request.user.usuario.id == usuario.id %}Mi Perfil{% else %}Editar Usuario{% endif %}</h1>
 
     <form method="POST" action="{% url 'editar_usuario' %}">
         {% csrf_token %}
@@ -43,6 +43,8 @@
                 value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}">
         </div>
 
+        {# BLOQUEO: El cajero no debe editar su propia fecha de ingreso ni experiencia laboral #}
+        {% if request.user.usuario.es_administrador %}
         <div class="form-group">
             <label for="txt_fecha_ingreso">Fecha de Ingreso</label>
             <input type="date" id="txt_fecha_ingreso" name="txt_fecha_ingreso"
@@ -54,29 +56,41 @@
             <input type="text" id="txt_experiencia" name="txt_experiencia"
                 value="{{ usuario.experiencia_laboral|default:'' }}">
         </div>
+        {% else %}
+            {# Si es cajero, solo los ve pero no los edita #}
+            <div class="form-group">
+                <label>Fecha de Ingreso</label>
+                <input type="text" value="{{ usuario.fecha_ingreso|date:'d/m/Y' }}" disabled>
+            </div>
+        {% endif %}
 
         <div class="form-group">
             <label for="txt_contrasena">Contraseña</label>
             <input type="password" id="txt_contrasena" name="txt_contrasena" placeholder="Dejar vacío para no cambiar">
         </div>
 
+        {# BLOQUEO: Solo el admin puede cambiar el estado (Activo/Inactivo) #}
         <div class="form-group">
             <label for="txt_estado">Estado</label>
+            {% if request.user.usuario.es_administrador %}
             <select id="txt_estado" name="txt_estado">
-                <option value="Activo" {% if usuario.estado == "Activo" %}selected{% endif %}>
-                    Activo
-                </option>
-                <option value="Vacaciones" {% if usuario.estado == "Vacaciones" %}selected{% endif %}>
-                    Vacaciones
-                </option>
-                <option value="Inactivo" {% if usuario.estado == "Inactivo" %}selected{% endif %}>
-                    Inactivo
-                </option>
+                <option value="Activo" {% if usuario.estado == "Activo" %}selected{% endif %}>Activo</option>
+                <option value="Vacaciones" {% if usuario.estado == "Vacaciones" %}selected{% endif %}>Vacaciones</option>
+                <option value="Inactivo" {% if usuario.estado == "Inactivo" %}selected{% endif %}>Inactivo</option>
             </select>
+            {% else %}
+            <input type="text" value="{{ usuario.estado }}" disabled>
+            <input type="hidden" name="txt_estado" value="{{ usuario.estado }}">
+            {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-guardar">Actualizar</button>
+        <button type="submit" class="btn btn-guardar">Actualizar Datos</button>
+        
+        {% if request.user.usuario.es_administrador %}
         <a href="{% url 'listar_usuarios' %}" class="btn btn-cancelar">Cancelar</a>
+        {% else %}
+        <a href="{% url 'dashboard' %}" class="btn btn-cancelar">Volver al Inicio</a>
+        {% endif %}
     </form>
 </div>
 {% endblock %}

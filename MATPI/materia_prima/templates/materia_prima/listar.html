@@ -13,6 +13,7 @@
                 <button type="submit" class="btn btn-guardar">Buscar</button>
             </form>
         </div>
+        
         <a href="{% url 'mostrar_registro_materia_prima' %}" class="btn btn-guardar">+ Nueva Materia Prima</a>
     </div>
 
@@ -26,7 +27,10 @@
                     <th>Cantidad</th>
                     <th>Fecha Ingreso</th>
                     <th>Fecha Vencimiento</th>
+                    {# Mantenemos la columna de acciones solo para el Admin #}
+                    {% if es_admin %}
                     <th>Acciones</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -38,15 +42,21 @@
                     <td>{{ mp.cantidad }}</td>
                     <td>{{ mp.fecha_ingreso|default:"—" }}</td>
                     <td>{{ mp.fecha_vencimiento|default:"—" }}</td>
+                    
+                    {# Solo el Administrador verá los botones de Editar y Eliminar #}
+                    {% if es_admin %}
                     <td class="acciones">
                         <a href="{% url 'pre_editar_materia_prima' mp.id %}" class="btn-editar">Editar</a>
                         <a href="{% url 'eliminar_materia_prima' mp.id %}" class="btn-danger"
                             onclick="return confirm('¿Eliminar esta materia prima?')">Eliminar</a>
                     </td>
+                    {% endif %}
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align:center;">No hay materias primas registradas.</td>
+                    <td colspan="{% if es_admin %}7{% else %}6{% endif %}" style="text-align:center;">
+                        No hay materias primas registradas.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

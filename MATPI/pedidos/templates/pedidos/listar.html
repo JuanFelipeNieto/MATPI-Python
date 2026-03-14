@@ -37,9 +37,15 @@
                     <td>{{ pedido.cliente|default:"—" }}</td>
                     <td>{{ pedido.cajero|default:"—" }}</td>
                     <td class="acciones">
-                        <a href="{% url 'pre_editar_pedido' pedido.id %}" class="btn-editar">Editar</a>
-                        <a href="{% url 'eliminar_pedido' pedido.id %}" class="btn-danger"
-                            onclick="return confirm('¿Eliminar este pedido?')">Eliminar</a>
+                        
+                        {% if es_admin %}
+                            <a href="{% url 'pre_editar_pedido' pedido.id %}" class="btn-editar">Editar</a>
+                            <a href="{% url 'eliminar_pedido' pedido.id %}" class="btn-danger"
+                                onclick="return confirm('¿Eliminar este pedido?')">Eliminar</a>
+                        {% else %}
+                            <span style="color: #888; font-size: 0.8em;">Solo lectura</span>
+                        {% endif %}
+
                     </td>
                 </tr>
                 {% empty %}

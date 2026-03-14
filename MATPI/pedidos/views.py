@@ -1,9 +1,19 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from .models import Pedido
-from usuarios.models import Cajero
+from usuarios.models import Cajero, Administrador # Importamos Administrador para validar
 from reservas.models import Reserva
 from clientes.models import Cliente
 
+def _obtener_contexto_rol(request, datos_extra=None):
+    """Función auxiliar para verificar si es admin en todas las vistas."""
+    id_usuario = request.session.get('usuario_id')
+    es_admin = Administrador.objects.filter(usuario_id=id_usuario).exists()
+    
+    contexto = {'es_admin': es_admin}
+    if datos_extra:
+        contexto.update(datos_extra)
+    return contexto
 
 def _generar_factura_si_necesario(pedido):
     """Genera factura automáticamente cuando un pedido se marca como completado."""
@@ -16,40 +26,37 @@ def _generar_factura_si_necesario(pedido):
             pedido=pedido,
         )
 
-
 def listar_pedidos(request):
     pedidos = Pedido.objects.all()
-    return render(request, 'pedidos/listar.html', {'pedidos': pedidos})
-
+    # Enviamos la variable es_admin para que el HTML oculte botones
+    return render(request, 'pedidos/listar.html', _obtener_contexto_rol(request, {'pedidos': pedidos}))
 
 def mostrar_registro_pedido(request):
-    cajeros  = Cajero.objects.all()
-    reservas = Reserva.objects.all()
-    clientes = Cliente.objects.all()
-    return render(request, 'pedidos/registrar.html',
-                  {'cajeros': cajeros, 'reservas': reservas, 'clientes': clientes})
-
+    # El cajero SI puede entrar aquí para registrar
+    datos = {
+        'cajeros': Cajero.objects.all(),
+        'reservas': Reserva.objects.all(),
+        'clientes': Cliente.objects.all(),
+    }
+    return render(request, 'pedidos/registrar.html', _obtener_contexto_rol(request, datos))
 
 def registrar_pedido(request):
     if request.method == 'POST':
-        fecha        = request.POST.get('txt_fecha')
-        valor        = request.POST.get('txt_valor')
-        numero_orden = request.POST.get('txt_numero_orden')
-        metodo_pago  = request.POST.get('txt_metodo_pago')
-        cajero_id    = request.POST.get('txt_cajero')
-        reserva_id   = request.POST.get('txt_reserva')
-        cliente_id   = request.POST.get('txt_cliente')
+        # ... (tu lógica de captura de datos se mantiene igual)
+        cajero_id = request.POST.get('txt_cajero')
+        reserva_id = request.POST.get('txt_reserva')
+        cliente_id = request.POST.get('txt_cliente')
 
-        cajero  = Cajero.objects.get(pk=cajero_id)   if cajero_id  else None
+        cajero = Cajero.objects.get(pk=cajero_id) if cajero_id else None
         reserva = Reserva.objects.get(pk=reserva_id) if reserva_id else None
         cliente = Cliente.objects.get(pk=cliente_id) if cliente_id else None
 
         pedido = Pedido.objects.create(
-            fecha=fecha,
+            fecha=request.POST.get('txt_fecha'),
             estado=True,
-            valor=valor,
-            numero_orden=numero_orden,
-            metodo_pago=metodo_pago,
+            valor=request.POST.get('txt_valor'),
+            numero_orden=request.POST.get('txt_numero_orden'),
+            metodo_pago=request.POST.get('txt_metodo_pago'),
             cajero=cajero,
             reserva=reserva,
             cliente=cliente,
@@ -58,46 +65,53 @@ def registrar_pedido(request):
         return redirect('listar_pedidos')
     return redirect('mostrar_registro_pedido')
 
-
 def pre_editar_pedido(request, id):
-    cajeros  = Cajero.objects.all()
-    reservas = Reserva.objects.all()
-    clientes = Cliente.objects.all()
-    pedido   = Pedido.objects.get(pk=id)
-    return render(request, 'pedidos/editar.html',
-                  {'pedido': pedido, 'cajeros': cajeros, 'reservas': reservas, 'clientes': clientes})
+    # SEGURIDAD: Solo el admin puede entrar al formulario de edición
+    contexto = _obtener_contexto_rol(request)
+    if not contexto['es_admin']:
+        messages.error(request, "Acceso denegado: Solo administradores pueden editar pedidos.")
+        return redirect('listar_pedidos')
 
+    datos = {
+        'pedido': Pedido.objects.get(pk=id),
+        'cajeros': Cajero.objects.all(),
+        'reservas': Reserva.objects.all(),
+        'clientes': Cliente.objects.all(),
+    }
+    return render(request, 'pedidos/editar.html', _obtener_contexto_rol(request, datos))
 
 def editar_pedido(request):
+    # SEGURIDAD: Validar rol antes de procesar el cambio en BD
+    contexto = _obtener_contexto_rol(request)
+    if not contexto['es_admin']:
+        return redirect('listar_pedidos')
+
     if request.method == 'POST':
-        id           = request.POST.get('txt_id')
-        fecha        = request.POST.get('txt_fecha')
-        estado       = request.POST.get('txt_estado', '1') == '1'
-        valor        = request.POST.get('txt_valor')
-        numero_orden = request.POST.get('txt_numero_orden')
-        metodo_pago  = request.POST.get('txt_metodo_pago')
-        cajero_id    = request.POST.get('txt_cajero')
-        reserva_id   = request.POST.get('txt_reserva')
-        cliente_id   = request.POST.get('txt_cliente')
-
-        cajero  = Cajero.objects.get(pk=cajero_id)   if cajero_id  else None
-        reserva = Reserva.objects.get(pk=reserva_id) if reserva_id else None
-        cliente = Cliente.objects.get(pk=cliente_id) if cliente_id else None
-
-        pedido              = Pedido.objects.get(pk=id)
-        pedido.fecha        = fecha
-        pedido.estado       = estado
-        pedido.valor        = valor
-        pedido.numero_orden = numero_orden
-        pedido.metodo_pago  = metodo_pago
-        pedido.cajero       = cajero
-        pedido.reserva      = reserva
-        pedido.cliente      = cliente
+        # ... (tu lógica de actualización de datos se mantiene igual)
+        id = request.POST.get('txt_id')
+        pedido = Pedido.objects.get(pk=id)
+        pedido.fecha = request.POST.get('txt_fecha')
+        pedido.estado = request.POST.get('txt_estado', '1') == '1'
+        pedido.valor = request.POST.get('txt_valor')
+        pedido.numero_orden = request.POST.get('txt_numero_orden')
+        pedido.metodo_pago = request.POST.get('txt_metodo_pago')
+        
+        # Actualización de llaves foráneas
+        pedido.cajero = Cajero.objects.get(pk=request.POST.get('txt_cajero')) if request.POST.get('txt_cajero') else None
+        pedido.reserva = Reserva.objects.get(pk=request.POST.get('txt_reserva')) if request.POST.get('txt_reserva') else None
+        pedido.cliente = Cliente.objects.get(pk=request.POST.get('txt_cliente')) if request.POST.get('txt_cliente') else None
+        
         pedido.save()
         _generar_factura_si_necesario(pedido)
     return redirect('listar_pedidos')
 
-
 def eliminar_pedido(request, id):
+    # SEGURIDAD: Solo el admin puede eliminar
+    contexto = _obtener_contexto_rol(request)
+    if not contexto['es_admin']:
+        messages.error(request, "Acceso denegado: No tienes permiso para eliminar registros.")
+        return redirect('listar_pedidos')
+
     Pedido.objects.get(pk=id).delete()
+    messages.success(request, "Pedido eliminado correctamente.")
     return redirect('listar_pedidos')
