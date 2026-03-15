@@ -32,17 +32,22 @@ def listar_productos(request):
 # --- GESTIÓN DE PRODUCTOS (CREACIÓN ABIERTA A CAJERO Y ADMIN) ---
 
 def mostrar_registro_producto(request):
-    # CAMBIO: Verificamos solo que esté logueado, no que sea admin
+    # Solo el administrador puede registrar productos
     if not request.session.get('usuario_id'):
         return redirect('login')
     
     es_admin = check_admin(request)
+    if not es_admin:
+        messages.error(request, "Solo el administrador puede registrar productos.")
+        return redirect('listar_productos')
+        
     return render(request, 'productos/registrar.html', {'es_admin': es_admin})
 
 def registrar_producto(request):
-    # CAMBIO: Quitamos el check_admin para permitir que el cajero guarde
-    if not request.session.get('usuario_id'):
-        return redirect('login')
+    # Verificamos que sea administrador
+    if not check_admin(request):
+        messages.error(request, "No tienes permisos para realizar esta acción.")
+        return redirect('listar_productos')
 
     if request.method == 'POST':
         Producto.objects.create(

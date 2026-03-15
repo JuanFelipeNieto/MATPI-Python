@@ -14,14 +14,15 @@
             </form>
         </div>
         
+        {% if es_admin %}
         <a href="{% url 'mostrar_registro_materia_prima' %}" class="btn btn-guardar">+ Nueva Materia Prima</a>
+        {% endif %}
     </div>
 
     <div class="table-responsive">
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Unidad de Medida</th>
                     <th>Cantidad</th>
@@ -36,7 +37,6 @@
             <tbody>
                 {% for mp in materia_primas %}
                 <tr>
-                    <td>{{ mp.id }}</td>
                     <td>{{ mp.nombre_materia_prima }}</td>
                     <td>{{ mp.unidad_medida|default:"—" }}</td>
                     <td>{{ mp.cantidad }}</td>
@@ -54,7 +54,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="{% if es_admin %}7{% else %}6{% endif %}" style="text-align:center;">
+                    <td colspan="{% if es_admin %}6{% else %}5{% endif %}" style="text-align:center;">
                         No hay materias primas registradas.
                     </td>
                 </tr>

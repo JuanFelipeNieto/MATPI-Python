@@ -11,10 +11,7 @@
         {% csrf_token %}
         <input type="hidden" name="txt_id" value="{{ materia_prima.id }}">
 
-        <div class="form-group">
-            <label>ID (automático)</label>
-            <input type="text" value="#{{ materia_prima.id }}" disabled>
-        </div>
+
 
         <div class="form-group">
             <label for="txt_nombre">Nombre</label>

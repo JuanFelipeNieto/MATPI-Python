@@ -8,4 +8,6 @@ urlpatterns = [
     path('editar/<int:id>/', views.pre_editar_proveedor, name='pre_editar_proveedor'),
     path('editar/guardar/', views.editar_proveedor, name='editar_proveedor'),
     path('eliminar/<int:id>/', views.eliminar_proveedor, name='eliminar_proveedor'),
+    path('suministro/<int:id>/', views.mostrar_registro_suministro, name='mostrar_registro_suministro'),
+    path('suministro/guardar/', views.registrar_suministro_materia, name='registrar_suministro_materia'),
 ]

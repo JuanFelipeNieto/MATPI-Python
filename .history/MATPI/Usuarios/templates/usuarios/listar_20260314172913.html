@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Usuarios — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Gestión de Cajeros</h1>
+
+    {# BLOQUEO: Solo el administrador puede buscar y registrar nuevos cajeros #}
+    {% if request.user.usuario.es_administrador %}
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_usuarios' %}">
+                <input type="text" name="buscar" placeholder="Buscar por documento o nombre"
+                    value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        <a href="{% url 'mostrar_registro_usuario' %}" class="btn btn-guardar">+ Nuevo Cajero</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Documento</th>
+                    <th>Nombre Completo</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.id }}</td>
+                    <td>{{ usuario.nombre_completo }}</td>
+                    <td>{{ usuario.correo_electronico }}</td>
+                    <td>{{ usuario.telefono }}</td>
+                    <td>{{ usuario.estado }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'pre_editar_usuario' usuario.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_usuario' usuario.id %}" class="btn-danger"
+                            onclick="return confirm('¿Eliminar este usuario?')">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center;">No hay usuarios registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    {# Mensaje amigable si un cajero llega a entrar por error #}
+    <div class="alert alert-warning">
+        <p>No tienes permisos para ver la lista completa de usuarios. 
+           Si necesitas actualizar tus datos, ve a <strong>Mi Perfil</strong>.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

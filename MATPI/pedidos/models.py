@@ -9,20 +9,21 @@ class Pedido(models.Model):
     """Pedido realizado por un cliente y atendido por un cajero."""
 
     METODOS_PAGO = [
-        ('Efectivo','Efectivo'),
-        ('Tarjeta Débito',  'Tarjeta Débito'),
+        ('Efectivo', 'Efectivo'),
+        ('Tarjeta Débito', 'Tarjeta Débito'),
         ('Tarjeta Crédito', 'Tarjeta Crédito'),
-        ('Nequi','Nequi'),
-        ('Daviplata',       'Daviplata'),
-        ('PSE',             'PSE'),
+        ('Nequi', 'Nequi'),
+        ('Daviplata', 'Daviplata'),
+        ('PSE', 'PSE'),
     ]
 
-    id= models.AutoField('ID', primary_key=True)
-    fecha= models.DateField('Fecha')
-    estado= models.BooleanField('Estado', default=True)
-    valor= models.PositiveIntegerField('Valor Total')
-    numero_orden = models.SmallIntegerField('Número de Orden')
-    metodo_pago  = models.CharField('Método de Pago', max_length=16, choices=METODOS_PAGO)
+    id = models.SmallIntegerField('ID', primary_key=True)
+    fecha = models.DateField('Fecha')
+    estado = models.BooleanField('Estado', default=True)
+    valor = models.PositiveIntegerField('Valor Total')
+    numero_orden = models.PositiveSmallIntegerField('Número de Orden')
+    metodo_pago = models.CharField('Método de Pago', max_length=16, choices=METODOS_PAGO)
+    
     cajero = models.ForeignKey(
         Cajero,
         on_delete=models.SET_NULL,
@@ -32,7 +33,7 @@ class Pedido(models.Model):
         verbose_name='Cajero',
         related_name='pedidos'
     )
-    reserva= models.ForeignKey(
+    reserva = models.ForeignKey(
         Reserva,
         on_delete=models.SET_NULL,
         null=True,
@@ -51,36 +52,42 @@ class Pedido(models.Model):
         related_name='pedidos'
     )
 
+    class Meta:
+        db_table = 'Pedido'
 
     def __str__(self):
         return f'Pedido #{self.id}  {self.fecha}'
 
-#  Tabla intermedia: Detalle de pedido
+
 class DetallePedidoProducto(models.Model):
     """Detalle de los productos incluidos en un pedido."""
 
     ESTADOS = [
-        ('preparando', 'Preparando'),
-        ('finalizado', 'Finalizado'),
+        ('preparando', 'preparando'),
+        ('finalizado', 'finalizado'),
     ]
 
-    pedido= models.ForeignKey(
+    id = models.AutoField(primary_key=True)
+    pedido = models.ForeignKey(
         Pedido,
         on_delete=models.CASCADE,
         db_column='ID_Pedido',
         verbose_name='Pedido',
         related_name='detalles'
     )
-    producto= models.ForeignKey(
+    producto = models.ForeignKey(
         Producto,
         on_delete=models.CASCADE,
         db_column='ID_Producto',
         verbose_name='Producto',
         related_name='detalles_pedido'
     )
-    cantidad = models.SmallIntegerField('Cantidad')
+    cantidad = models.PositiveSmallIntegerField('Cantidad')
     precio_unitario = models.PositiveIntegerField('Precio Unitario')
     estado = models.CharField('Estado', max_length=10, choices=ESTADOS, default='preparando')
+
+    class Meta:
+        db_table = 'Details_Pedido_Producto'
 
     def __str__(self):
         return f'Detalle Pedido #{self.pedido_id}  {self.producto}'

@@ -7,6 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Matpi{% endblock %}</title>
     <link rel="icon" href="{% static 'img/Favicon.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/matpi.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
@@ -26,65 +29,73 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="{% url 'dashboard' %}" class="sidebar-link" title="Dashboard">
-                <span class="sidebar-icon">🏠</span>
-                <span class="sidebar-label">Dashboard</span>
-            </a>
+            <div class="nav-section">
+                <span class="nav-section-label">General</span>
+                <a href="{% url 'dashboard' %}" class="sidebar-link" title="Dashboard">
+                    <span class="sidebar-icon">🏠</span>
+                    <span class="sidebar-label">Dashboard</span>
+                </a>
+            </div>
 
-            <a href="{% url 'listar_pedidos' %}" class="sidebar-link" title="Pedidos">
-                <span class="sidebar-icon">📋</span>
-                <span class="sidebar-label">Pedidos</span>
-            </a>
-            <a href="{% url 'listar_facturas' %}" class="sidebar-link" title="Facturas">
-                <span class="sidebar-icon">💰</span>
-                <span class="sidebar-label">Facturas</span>
-            </a>
-            <a href="{% url 'listar_clientes' %}" class="sidebar-link" title="Clientes">
-                <span class="sidebar-icon">👥</span>
-                <span class="sidebar-label">Clientes</span>
-            </a>
-            <a href="{% url 'listar_reservas' %}" class="sidebar-link" title="Reservas">
-                <span class="sidebar-icon">🪑</span>
-                <span class="sidebar-label">Reservas</span>
-            </a>
+            <div class="nav-section">
+                <span class="nav-section-label">Operaciones</span>
+                <a href="{% url 'listar_pedidos' %}" class="sidebar-link" title="Pedidos">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-label">Pedidos</span>
+                </a>
+                <a href="{% url 'listar_facturas' %}" class="sidebar-link" title="Facturas">
+                    <span class="sidebar-icon">💰</span>
+                    <span class="sidebar-label">Facturas</span>
+                </a>
+                <a href="{% url 'listar_reservas' %}" class="sidebar-link" title="Reservas">
+                    <span class="sidebar-icon">🪑</span>
+                    <span class="sidebar-label">Reservas</span>
+                </a>
+                <a href="{% url 'listar_clientes' %}" class="sidebar-link" title="Clientes">
+                    <span class="sidebar-icon">👥</span>
+                    <span class="sidebar-label">Clientes</span>
+                </a>
+            </div>
 
-            <a href="{% url 'listar_productos' %}" class="sidebar-link" title="Productos">
-                <span class="sidebar-icon">🍔</span>
-                <span class="sidebar-label">Productos</span>
-            </a>
-            <a href="{% url 'listar_materia_prima' %}" class="sidebar-link" title="Materia Prima">
-                <span class="sidebar-icon">🥬</span>
-                <span class="sidebar-label">Materia Prima</span>
-            </a>
-
-            {% if es_admin %}
-                <div class="sidebar-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 10px 20px;"></div>
-                <a href="{% url 'listar_usuarios' %}" class="sidebar-link" title="Usuarios">
-                    <span class="sidebar-icon">🧑‍💼</span>
-                    <span class="sidebar-label">Usuarios</span>
+            <div class="nav-section">
+                <span class="nav-section-label">Inventario</span>
+                <a href="{% url 'listar_productos' %}" class="sidebar-link" title="Productos">
+                    <span class="sidebar-icon">🍔</span>
+                    <span class="sidebar-label">Productos</span>
+                </a>
+                <a href="{% url 'listar_materia_prima' %}" class="sidebar-link" title="Materia Prima">
+                    <span class="sidebar-icon">🥬</span>
+                    <span class="sidebar-label">Materia Prima</span>
                 </a>
                 <a href="{% url 'listar_proveedores' %}" class="sidebar-link" title="Proveedores">
                     <span class="sidebar-icon">🚚</span>
                     <span class="sidebar-label">Proveedores</span>
                 </a>
+            </div>
+
+            {% if es_admin %}
+            <div class="nav-section">
+                <span class="nav-section-label">Administración</span>
+                <a href="{% url 'listar_usuarios' %}" class="sidebar-link" title="Gestión de Cajeros">
+                    <span class="sidebar-icon">👤</span>
+                    <span class="sidebar-label">Cajeros</span>
+                </a>
+            </div>
             {% endif %}
             
-            <a href="{% url 'pre_editar_usuario' request.session.usuario_id %}" class="sidebar-link" title="Mi Perfil">
-                <span class="sidebar-icon">⚙️</span>
-                <span class="sidebar-label">Mi Perfil</span>
-            </a>
         </nav>
 
-        <div class="sidebar-footer">
-            <span class="sidebar-icon">👤</span>
-            <span class="sidebar-label">
-                {{ request.session.usuario_nombre|default:"Usuario" }}
-                <br>
-                <small style="font-size: 0.7em; color: #ff9f00; font-weight: bold;">
+        <a href="{% url 'ver_perfil' request.session.usuario_id %}" class="sidebar-footer" title="Mi Perfil">
+            <div class="user-avatar-mini" style="width: 35px; height: 35px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--black); font-weight: bold; flex-shrink: 0;">
+                👤
+            </div>
+            <div class="sidebar-label" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span style="display: block; color: var(--white); font-weight: 600;">{{ request.session.usuario_nombre|default:"Usuario" }}</span>
+                <small style="font-size: 0.65rem; color: var(--primary); font-weight: 800; text-transform: uppercase;">
                     {% if es_admin %}ADMINISTRADOR{% else %}CAJERO{% endif %}
                 </small>
-            </span>
-        </div>
+            </div>
+        </a>
     </aside>
 
     <div class="page-wrapper" id="pageWrapper">

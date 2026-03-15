@@ -1,0 +1,34 @@
+﻿python : 
+SystemCheckError: System 
+check identified some 
+issues:
+En línea: 1 Carácter: 1
++ python manage.py check 
+> output_check.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (S  
+  ystemCheckErro...ed s   
+ ome issues::String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+
+ERRORS:
+<class 'usuarios.admin.Adm
+inistradorAdmin'>: 
+(admin.E108) The value of 
+'list_display[1]' refers 
+to 'ultima_fecha_login', 
+which is not a callable 
+or attribute of 
+'AdministradorAdmin', or 
+an attribute, method, or 
+field on 
+'usuarios.Administrador'.
+
+System check identified 1 
+issue (0 silenced).

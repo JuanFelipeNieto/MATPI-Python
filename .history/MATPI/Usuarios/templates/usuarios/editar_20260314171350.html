@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario — Matpi{% endblock %}
+{% block topbar_title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion profile-container">
+    <div class="profile-header" style="text-align: center; margin-bottom: 30px;">
+        <div class="profile-avatar" style="font-size: 4rem; margin-bottom: 10px;">👤</div>
+        <h1 style="margin-bottom: 5px;">
+            {% if request.session.usuario_id == usuario.id %}Mi Perfil{% else %}Editar Usuario{% endif %}
+        </h1>
+        <p style="color: #666;">Gestiona tu información personal y configuraciones de cuenta</p>
+    </div>
+
+    <form method="POST" action="{% url 'editar_usuario' %}" class="profile-form">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ usuario.id }}">
+
+        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div class="form-section">
+                <h3 style="margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; font-size: 1.1rem;">Información Básica</h3>
+                
+                <div class="form-group">
+                    <label>Documento de Identidad</label>
+                    <input type="text" value="{{ usuario.id }}" disabled style="background: #f0f0f0; font-weight: bold;">
+                </div>
+
+                <div class="form-group">
+                    <label for="txt_nombre">Nombre Completo</label>
+                    <input type="text" id="txt_nombre" name="txt_nombre" value="{{ usuario.nombre_completo }}" required placeholder="Ej: Juan Pérez">
+                </div>
+
+                <div class="form-group">
+                    <label for="txt_fecha_nacimiento">Fecha de Nacimiento</label>
+                    <input type="date" id="txt_fecha_nacimiento" name="txt_fecha_nacimiento"
+                        value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 style="margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; font-size: 1.1rem;">Contacto y Ubicación</h3>
+
+                <div class="form-group">
+                    <label for="txt_correo">Correo Electrónico</label>
+                    <input type="email" id="txt_correo" name="txt_correo" value="{{ usuario.correo_electronico }}" required placeholder="usuario@ejemplo.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="txt_telefono">Teléfono de Contacto</label>
+                    <input type="text" id="txt_telefono" name="txt_telefono" value="{{ usuario.telefono|default:'' }}" required placeholder="Ej: 3001234567">
+                </div>
+
+                <div class="form-group">
+                    <label for="txt_direccion">Dirección de Residencia</label>
+                    <input type="text" id="txt_direccion" name="txt_direccion" value="{{ usuario.direccion|default:'' }}"
+                        required placeholder="Dirección completa">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 style="margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; font-size: 1.1rem;">Seguridad y Estado</h3>
+
+                <div class="form-group">
+                    <label for="txt_contrasena">Nueva Contraseña</label>
+                    <input type="password" id="txt_contrasena" name="txt_contrasena" placeholder="Dejar vacío para no cambiar">
+                    <small style="color: #888; display: block; margin-top: 4px;">Solo completa este campo si deseas cambiar tu clave actual.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="txt_estado">Estado de Cuenta</label>
+                    {% if es_admin %}
+                    <select id="txt_estado" name="txt_estado" style="border: 2px solid var(--primary);">
+                        <option value="Activo" {% if usuario.estado == "Activo" %}selected{% endif %}>🟢 Activo</option>
+                        <option value="Vacaciones" {% if usuario.estado == "Vacaciones" %}selected{% endif %}>🟡 Vacaciones</option>
+                        <option value="Inactivo" {% if usuario.estado == "Inactivo" %}selected{% endif %}>🔴 Inactivo</option>
+                    </select>
+                    {% else %}
+                    <div style="padding: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--primary);">
+                        <strong>{{ usuario.estado }}</strong>
+                    </div>
+                    <input type="hidden" name="txt_estado" value="{{ usuario.estado }}">
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if es_admin or request.session.usuario_id == usuario.id %}
+            <div class="form-section">
+                <h3 style="margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; font-size: 1.1rem;">Información Laboral</h3>
+                
+                <div class="form-group">
+                    <label>Fecha de Ingreso</label>
+                    {% if es_admin %}
+                    <input type="date" id="txt_fecha_ingreso" name="txt_fecha_ingreso"
+                        value="{{ usuario.fecha_ingreso|date:'Y-m-d' }}">
+                    {% else %}
+                    <input type="text" value="{{ usuario.fecha_ingreso|date:'d/m/Y' }}" disabled style="background: #f8f9fa;">
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Experiencia Laboral</label>
+                    {% if es_admin %}
+                    <input type="text" id="txt_experiencia" name="txt_experiencia"
+                        value="{{ usuario.experiencia_laboral|default:'' }}" placeholder="Años o descripción de cargo">
+                    {% else %}
+                    <input type="text" value="{{ usuario.experiencia_laboral|default:'No especificada' }}" disabled style="background: #f8f9fa;">
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions" style="margin-top: 40px; display: flex; gap: 15px; justify-content: center; border-top: 1px solid #eee; padding-top: 25px;">
+            <button type="submit" class="btn" style="padding: 12px 40px; font-size: 1rem; background: var(--black); color: var(--primary); border: 2px solid var(--primary);">
+                💾 Guardar Cambios
+            </button>
+            
+            {% if es_admin and request.session.usuario_id != usuario.id %}
+            <a href="{% url 'listar_usuarios' %}" class="btn btn-cancelar" style="padding: 12px 30px; font-size: 1rem; display: flex; align-items: center;">
+                Cancelar
+            </a>
+            {% else %}
+            <a href="{% url 'dashboard' %}" class="btn btn-cancelar" style="padding: 12px 30px; font-size: 1rem; display: flex; align-items: center;">
+                🏠 Ir al Inicio
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

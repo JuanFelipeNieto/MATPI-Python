@@ -15,7 +15,9 @@
             </form>
         </div>
         
+        {% if es_admin %}
         <a href="{% url 'mostrar_registro_producto' %}" class="btn btn-guardar">+ Nuevo Producto</a>
+        {% endif %}
     </div>
 
     <div class="table-responsive">

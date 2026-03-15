@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Matpi{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/Favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/matpi.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" title="Cerrar menú">✕</button>
+
+        <div class="sidebar-header">
+            <a href="{% url 'dashboard' %}" class="sidebar-header-link">
+                <img src="{% static 'img/Logomatpi.png' %}" alt="Matpi" class="sidebar-logo">
+                <span class="sidebar-brand">Matpi</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard' %}" class="sidebar-link" title="Dashboard">
+                <span class="sidebar-icon">🏠</span>
+                <span class="sidebar-label">Dashboard</span>
+            </a>
+
+            <a href="{% url 'listar_pedidos' %}" class="sidebar-link" title="Pedidos">
+                <span class="sidebar-icon">📋</span>
+                <span class="sidebar-label">Pedidos</span>
+            </a>
+            <a href="{% url 'listar_facturas' %}" class="sidebar-link" title="Facturas">
+                <span class="sidebar-icon">💰</span>
+                <span class="sidebar-label">Facturas</span>
+            </a>
+            <a href="{% url 'listar_clientes' %}" class="sidebar-link" title="Clientes">
+                <span class="sidebar-icon">👥</span>
+                <span class="sidebar-label">Clientes</span>
+            </a>
+            <a href="{% url 'listar_reservas' %}" class="sidebar-link" title="Reservas">
+                <span class="sidebar-icon">🪑</span>
+                <span class="sidebar-label">Reservas</span>
+            </a>
+
+            <a href="{% url 'listar_productos' %}" class="sidebar-link" title="Productos">
+                <span class="sidebar-icon">🍔</span>
+                <span class="sidebar-label">Productos</span>
+            </a>
+            <a href="{% url 'listar_materia_prima' %}" class="sidebar-link" title="Materia Prima">
+                <span class="sidebar-icon">🥬</span>
+                <span class="sidebar-label">Materia Prima</span>
+            </a>
+
+            {% if es_admin %}
+                <div class="sidebar-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 10px 20px;"></div>
+                <a href="{% url 'listar_usuarios' %}" class="sidebar-link" title="Gestión de Cajeros">
+                    <span class="sidebar-icon">👥</span>
+                    <span class="sidebar-label">Cajeros</span>
+                </a>
+                <a href="{% url 'listar_proveedores' %}" class="sidebar-link" title="Proveedores">
+                    <span class="sidebar-icon">🚚</span>
+                    <span class="sidebar-label">Proveedores</span>
+                </a>
+            {% endif %}
+            
+        </nav>
+
+        <a href="{% url 'ver_perfil' request.session.usuario_id %}" class="sidebar-footer" title="Mi Perfil">
+            <span class="sidebar-icon">👤</span>
+            <span class="sidebar-label">
+                {{ request.session.usuario_nombre|default:"Usuario" }}
+                <br>
+                <small style="font-size: 0.7em; color: #ff9f00; font-weight: bold;">
+                    {% if es_admin %}ADMINISTRADOR{% else %}CAJERO{% endif %}
+                </small>
+            </span>
+        </a>
+    </aside>
+
+    <div class="page-wrapper" id="pageWrapper">
+        <header class="topbar">
+            <button class="topbar-menu-btn" id="topbarMenuBtn" title="Abrir menú">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            <a href="{% url 'dashboard' %}" class="topbar-logo-link">
+                <img src="{% static 'img/Logomatpi.png' %}" alt="Matpi" class="topbar-logo">
+            </a>
+            <span class="topbar-title">{% block topbar_title %}Matpi{% endblock %}</span>
+            
+            <a href="{% url 'logout' %}" class="logout-btn" style="margin-left: auto; color: white; text-decoration: none; padding: 8px 15px; font-size: 0.85em; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;">Cerrar Sesión</a>
+        </header>
+
+        <main>
+            {% if messages %}
+                <div class="messages-container" style="padding: 15px 20px 0 20px;">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}" 
+                             style="padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 5px solid 
+                                    {% if message.tags == 'error' %} #721c24; background-color: #f8d7da; color: #721c24; 
+                                    {% elif message.tags == 'success' %} #155724; background-color: #d4edda; color: #155724;
+                                    {% else %} #856404; background-color: #fff3cd; color: #856404; {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="content-body" style="padding: 20px;">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <footer style="margin-top: auto; padding: 20px; text-align: center; font-size: 0.85em; color: #666; border-top: 1px solid #eee;">
+            <p>© 2026 Matpi. Gestión de Inventario y Ventas.</p>
+        </footer>
+    </div>
+
+    <script>
+        (function () {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const openBtn = document.getElementById('topbarMenuBtn');
+            const closeBtn = document.getElementById('sidebarCloseBtn');
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.classList.add('sidebar-open');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+            }
+
+            openBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
+
+            // Resaltar link activo
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.sidebar-link').forEach(function (link) {
+                const href = link.getAttribute('href');
+                // Si estamos en la raíz del dashboard o en una sub-url del módulo
+                if (href === currentPath || (href !== '/' && currentPath.startsWith(href))) {
+                    link.classList.add('active');
+                }
+            });
+        })();
+    </script>
+
+</body>
+</html>

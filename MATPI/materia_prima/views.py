@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db import transaction, models
+from django.utils import timezone
 from .models import MateriaPrima
 from usuarios.models import Administrador 
 
@@ -36,14 +38,22 @@ def mostrar_registro_materia_prima(request):
     if not id_sesion:
         return redirect('login')
     
-    # Quitamos el bloqueo de es_admin para que el cajero entre al formulario
+    # Solo el administrador puede registrar materia prima
     es_admin = check_admin(request)
-    return render(request, 'materia_prima/registrar.html', {'es_admin': es_admin})
+    if not es_admin:
+        messages.error(request, "Solo el administrador puede registrar materia prima.")
+        return redirect('listar_materia_prima')
+        
+    return render(request, 'materia_prima/registrar.html', {
+        'es_admin': es_admin,
+        'fecha_actual': timezone.now()
+    })
 
 def registrar_materia_prima(request):
-    # Verificamos solo que esté logueado
-    if not request.session.get('usuario_id'):
-        return redirect('login')
+    # Verificamos que sea administrador
+    if not check_admin(request):
+        messages.error(request, "No tienes permisos para realizar esta acción.")
+        return redirect('listar_materia_prima')
 
     if request.method == 'POST':
         MateriaPrima.objects.create(

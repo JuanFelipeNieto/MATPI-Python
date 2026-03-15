@@ -6,11 +6,11 @@ from materia_prima.models import MateriaPrima
 class Proveedor(models.Model):
     """Proveedor de materias primas para el restaurante."""
 
-    id= models.AutoField('ID', primary_key=True)
-    nombre_proveedor= models.CharField('Nombre del Proveedor', max_length=50)
-    direccion= models.CharField('Dirección',max_length=120, blank=True, null=True)
-    correo_electronico  = models.EmailField('Correo Electrónico',  max_length=35,  blank=True, null=True)
-    telefono = models.CharField('Teléfono',max_length=14,  blank=True, null=True)
+    id = models.AutoField(primary_key=True)
+    nombre_proveedor = models.CharField('Nombre del Proveedor', max_length=50)
+    direccion = models.CharField('Dirección', max_length=120, blank=True, null=True)
+    correo_electronico = models.EmailField('Correo Electrónico', max_length=35, blank=True, null=True)
+    telefono = models.CharField('Teléfono', max_length=14, blank=True, null=True)
     cajero = models.ForeignKey(
         Cajero,
         on_delete=models.SET_NULL,
@@ -21,22 +21,24 @@ class Proveedor(models.Model):
         related_name='proveedores'
     )
 
+    class Meta:
+        db_table = 'Proveedor'
 
     def __str__(self):
         return self.nombre_proveedor
 
-#  Tabla intermedia: Proveedor-Materia Prima
+
 class DetalleProveedorMateriaP(models.Model):
     """Suministro de materia prima por proveedor."""
 
-    proveedor= models.ForeignKey(
+    proveedor = models.ForeignKey(
         Proveedor,
         on_delete=models.CASCADE,
         db_column='Proveedor_ID',
         verbose_name='Proveedor',
         related_name='detalles_materia'
     )
-    materia_prima= models.ForeignKey(
+    materia_prima = models.ForeignKey(
         MateriaPrima,
         on_delete=models.CASCADE,
         db_column='MateriaPrima_ID',
@@ -45,7 +47,11 @@ class DetalleProveedorMateriaP(models.Model):
     )
     precio_unitario = models.DecimalField('Precio Unitario', max_digits=10, decimal_places=2, blank=True, null=True)
     fecha_suministro = models.DateTimeField('Fecha de Suministro', blank=True, null=True)
+    fecha_vencimiento = models.DateField('Fecha de Vencimiento', blank=True, null=True)
 
+    class Meta:
+        db_table = 'Details_Proveedor_MateriaP'
+        unique_together = (('proveedor', 'materia_prima'),)
 
     def __str__(self):
         return f'{self.proveedor} → {self.materia_prima}'

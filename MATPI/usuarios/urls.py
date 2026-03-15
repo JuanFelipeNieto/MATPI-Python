@@ -9,6 +9,7 @@ urlpatterns = [
     
     # Cambiamos <int:id> por <str:id> para que acepte IDs con letras
     path('editar/<str:id>/', views.pre_editar_usuario, name='pre_editar_usuario'),
+    path('perfil/<str:id>/', views.ver_perfil, name='ver_perfil'),
     path('editar/guardar/', views.editar_usuario, name='editar_usuario'),
     path('eliminar/<str:id>/', views.eliminar_usuario, name='eliminar_usuario'),
 

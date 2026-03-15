@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Cajero — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Nuevo Cajero</h1>
+
+    <form method="POST" action="{% url 'registrar_usuario' %}" class="grid-form">
+        {% csrf_token %}
+
+        <!-- Sección: Información Personal -->
+        <h3 class="section-title" style="margin: 20px 0 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">👤 Información Personal</h3>
+        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div class="form-group">
+                <label for="txt_id">Documento de Identidad</label>
+                <input type="text" id="txt_id" name="txt_id" placeholder="Número de documento" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_nombre">Nombre Completo</label>
+                <input type="text" id="txt_nombre" name="txt_nombre" placeholder="Nombre completo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_fecha_nacimiento">Fecha de Nacimiento</label>
+                <input type="date" id="txt_fecha_nacimiento" name="txt_fecha_nacimiento" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_telefono">Teléfono</label>
+                <input type="text" id="txt_telefono" name="txt_telefono" placeholder="Ej: 3001234567" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_correo">Correo Electrónico</label>
+                <input type="email" id="txt_correo" name="txt_correo" placeholder="correo@ejemplo.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_direccion">Dirección</label>
+                <input type="text" id="txt_direccion" name="txt_direccion" placeholder="Dirección de residencia" required>
+            </div>
+        </div>
+
+        <!-- Sección: Información Laboral -->
+        <h3 class="section-title" style="margin: 40px 0 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">💼 Información Laboral (Cajero)</h3>
+        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div class="form-group">
+                <label for="txt_eps">EPS</label>
+                <select id="txt_eps" name="txt_eps" required>
+                    <option value="" disabled selected>Seleccione EPS</option>
+                    <option value="Nueva EPS">Nueva EPS</option>
+                    <option value="Sanitas">Sanitas</option>
+                    <option value="SURA">SURA</option>
+                    <option value="Salud Total">Salud Total</option>
+                    <option value="Compensar">Compensar</option>
+                    <option value="Famisanar">Famisanar</option>
+                    <option value="Coosalud">Coosalud</option>
+                    <option value="Mutual Ser">Mutual Ser</option>
+                    <option value="SOS">SOS</option>
+                    <option value="Capital Salud">Capital Salud</option>
+                    <option value="Savia Salud">Savia Salud</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_tipo_contrato">Tipo de Contrato</label>
+                <select id="txt_tipo_contrato" name="txt_tipo_contrato" required>
+                    <option value="Indefinido">Indefinido</option>
+                    <option value="Fijo">Fijo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_turno">Turno</label>
+                <select id="txt_turno" name="txt_turno" required>
+                    <option value="Mañana">Mañana</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noche">Noche</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_fecha_ingreso">Fecha de Ingreso</label>
+                <input type="date" id="txt_fecha_ingreso" name="txt_fecha_ingreso" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_fecha_terminacion">Fecha Terminación Contrato</label>
+                <input type="date" id="txt_fecha_terminacion" name="txt_fecha_terminacion">
+                <small style="color: #888;">Sólo si es contrato fijo.</small>
+            </div>
+
+            <div class="form-group" style="grid-column: span 1;">
+                <label for="txt_experiencia">Experiencia Previa</label>
+                <textarea id="txt_experiencia" name="txt_experiencia" placeholder="Describe brevemente la.." style="width: 100%; height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: vertical;"></textarea>
+            </div>
+        </div>
+
+        <!-- Sección: Contacto de Emergencia -->
+        <h3 class="section-title" style="margin: 40px 0 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">🚨 Contacto de Emergencia</h3>
+        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div class="form-group">
+                <label for="txt_emergencia_nombre">Nombre Completo</label>
+                <input type="text" id="txt_emergencia_nombre" name="txt_emergencia_nombre" placeholder="Nombre del contacto" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_emergencia_parentesco">Parentesco / Relación</label>
+                <input type="text" id="txt_emergencia_parentesco" name="txt_emergencia_parentesco" placeholder="Ej: Madre, Esposo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_emergencia_numero">Número de Teléfono</label>
+                <input type="text" id="txt_emergencia_numero" name="txt_emergencia_numero" placeholder="Teléfono de emergencia" required>
+            </div>
+        </div>
+
+        <!-- Sección: Seguridad -->
+        <h3 class="section-title" style="margin: 40px 0 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">🔒 Seguridad</h3>
+        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+            <div class="form-group">
+                <label for="txt_contrasena">Establecer Contraseña Inicial</label>
+                <input type="password" id="txt_contrasena" name="txt_contrasena" placeholder="Mínimo 8 caracteres" required>
+            </div>
+            <div class="form-group">
+                <label for="txt_estado">Estado Inicial</label>
+                <select id="txt_estado" name="txt_estado">
+                    <option value="Activo">🟢 Activo</option>
+                    <option value="Inactivo">🔴 Inactivo</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 40px; display: flex; gap: 15px; border-top: 2px solid #eee; padding-top: 25px;">
+            <button type="submit" class="btn" style="padding: 12px 40px; font-size: 1rem; flex: 1;">💾 Registrar Cajero</button>
+            <a href="{% url 'listar_usuarios' %}" class="btn btn-cancelar" style="padding: 12px 30px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

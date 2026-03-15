@@ -28,7 +28,7 @@
 
         <div class="form-group">
             <label for="txt_fecha_ingreso">Fecha de Ingreso</label>
-            <input type="datetime-local" id="txt_fecha_ingreso" name="txt_fecha_ingreso">
+            <input type="datetime-local" id="txt_fecha_ingreso" name="txt_fecha_ingreso" value="{{ fecha_actual|date:'Y-m-d\TH:i' }}">
         </div>
 
         <div class="form-group">

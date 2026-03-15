@@ -5,8 +5,8 @@ from usuarios.models import Cajero
 class Reserva(models.Model):
     """Reserva asociada a un cajero del sistema."""
 
-    id= models.AutoField('ID', primary_key=True)
-    fecha= models.DateTimeField('Fecha y Hora')
+    id = models.PositiveSmallIntegerField('ID', primary_key=True)
+    fecha = models.DateTimeField('Fecha y Hora')
     estado = models.BooleanField('Estado', default=True)
     observaciones = models.TextField('Observaciones', max_length=255, blank=True, null=True)
     cajero = models.ForeignKey(
@@ -18,6 +18,9 @@ class Reserva(models.Model):
         verbose_name='Cajero',
         related_name='reservas'
     )
+
+    class Meta:
+        db_table = 'Reserva'
 
     def __str__(self):
         return f'Reserva #{self.id}  {self.fecha}'

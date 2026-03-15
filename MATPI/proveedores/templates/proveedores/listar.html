@@ -14,14 +14,15 @@
                 <button type="submit" class="btn btn-guardar">Buscar</button>
             </form>
         </div>
+        {% if es_admin %}
         <a href="{% url 'mostrar_registro_proveedor' %}" class="btn btn-guardar">+ Nuevo Proveedor</a>
+        {% endif %}
     </div>
 
     <div class="table-responsive">
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Teléfono</th>
                     <th>Email</th>
@@ -32,15 +33,17 @@
             <tbody>
                 {% for proveedor in proveedores %}
                 <tr>
-                    <td>{{ proveedor.id }}</td>
                     <td>{{ proveedor.nombre_proveedor }}</td>
                     <td>{{ proveedor.telefono|default:"—" }}</td>
                     <td>{{ proveedor.correo_electronico|default:"—" }}</td>
                     <td>{{ proveedor.direccion|default:"—" }}</td>
                     <td class="acciones">
+                        <a href="{% url 'mostrar_registro_suministro' proveedor.id %}" class="btn-editar" style="background-color: #218838; border-color: #1e7e34;" title="Registrar Suministro">🛒 Suministro</a>
+                        {% if es_admin %}
                         <a href="{% url 'pre_editar_proveedor' proveedor.id %}" class="btn-editar">Editar</a>
                         <a href="{% url 'eliminar_proveedor' proveedor.id %}" class="btn-danger"
                             onclick="return confirm('¿Eliminar este proveedor?')">Eliminar</a>
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
