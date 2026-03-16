@@ -11,9 +11,7 @@ def listar_clientes(request):
 
 
 def mostrar_registro_cliente(request):
-    cajeros = Cajero.objects.all()
-    data = {'cajeros': cajeros}
-    return render(request, 'clientes/registrar.html', data)
+    return render(request, 'clientes/registrar.html')
 
 
 def registrar_cliente(request):
@@ -21,11 +19,15 @@ def registrar_cliente(request):
         id = request.POST.get('txt_id')
         nombre = request.POST.get('txt_nombre')
         telefono = request.POST.get('txt_telefono')
-        cajero_id = request.POST.get('txt_cajero')
-
+        
+        # Asignación automática del cajero basada en la sesión del usuario actual
+        usuario_id = request.session.get('usuario_id')
         cajero = None
-        if cajero_id:
-            cajero = Cajero.objects.get(pk=cajero_id)
+        if usuario_id:
+            try:
+                cajero = Cajero.objects.get(pk=usuario_id)
+            except Cajero.DoesNotExist:
+                pass
 
         Cliente.objects.create(
             id=id,

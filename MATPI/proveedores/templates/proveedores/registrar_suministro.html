@@ -16,7 +16,7 @@
             <select name="txt_materia_id" id="txt_materia_id" required>
                 <option value="" disabled selected>Seleccione la materia prima</option>
                 {% for materia in materias_primas %}
-                <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} (Stock actual: {{ materia.cantidad }} {{ materia.unidad_medida }})</option>
+                <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} (Stock actual: {{ materia.stock_total|floatformat:0 }} {{ materia.unidad_medida }})</option>
                 {% endfor %}
             </select>
         </div>

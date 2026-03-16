@@ -51,7 +51,6 @@ class DetalleProveedorMateriaP(models.Model):
 
     class Meta:
         db_table = 'Details_Proveedor_MateriaP'
-        unique_together = (('proveedor', 'materia_prima'),)
 
     def __str__(self):
         return f'{self.proveedor} → {self.materia_prima}'

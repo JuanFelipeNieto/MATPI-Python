@@ -39,18 +39,18 @@
                 <tr>
                     <td>{{ mp.nombre_materia_prima }}</td>
                     <td>{{ mp.unidad_medida|default:"—" }}</td>
-                    <td>{{ mp.cantidad }}</td>
-                    <td>{{ mp.fecha_ingreso|default:"—" }}</td>
-                    <td>{{ mp.fecha_vencimiento|default:"—" }}</td>
+                    <td style="font-weight: 700;">{{ mp.stock_total|floatformat:0 }}</td>
+                    <td>{{ mp.fecha_ingreso|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ mp.fecha_vencimiento|date:"d/m/Y"|default:"—" }}</td>
                     
-                    {# Solo el Administrador verá los botones de Editar y Eliminar #}
-                    {% if es_admin %}
                     <td class="acciones">
+                        <a href="{% url 'ver_lotes' mp.id %}" class="btn-editar" style="background: #6c757d;">📦 Lotes</a>
+                        {% if es_admin %}
                         <a href="{% url 'pre_editar_materia_prima' mp.id %}" class="btn-editar">Editar</a>
                         <a href="{% url 'eliminar_materia_prima' mp.id %}" class="btn-danger"
                             onclick="return confirm('¿Eliminar esta materia prima?')">Eliminar</a>
+                        {% endif %}
                     </td>
-                    {% endif %}
                 </tr>
                 {% empty %}
                 <tr>

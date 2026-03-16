@@ -43,6 +43,9 @@ class Administrador(models.Model):
     ultima_fecha_login = models.DateTimeField('Última Fecha de Login', blank=True, null=True, db_column='Ult_Fecha_login')
     formacion_educativa = models.CharField('Formación Educativa', max_length=35, blank=True, null=True, db_column='Formacion_Educativa')
 
+    def __str__(self):
+        return self.usuario.nombre_completo
+
     class Meta:
         db_table = 'usuarios_administrador'
 
@@ -80,6 +83,9 @@ class Cajero(models.Model):
     contacto_emergencia_parentesco = models.CharField('Parentesco Contacto Emergencia', max_length=15, blank=True, null=True, db_column='Contacto_Emergencia_Parentesco')
     contacto_emergencia_numero = models.CharField('Número Contacto Emergencia', max_length=14, blank=True, null=True, db_column='Contacto_Emergencia_Numero')
     fecha_terminacion_contrato = models.DateField('Fecha Terminación Contrato', blank=True, null=True, db_column='Fecha_Terminacion_Contrato')
+
+    def __str__(self):
+        return self.usuario.nombre_completo
 
     class Meta:
         db_table = 'usuarios_cajero'

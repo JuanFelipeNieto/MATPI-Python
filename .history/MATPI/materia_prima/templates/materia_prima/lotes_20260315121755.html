@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Lotes de {{ materia.nombre_materia_prima }} — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h1 style="margin: 0;">Lotes de {{ materia.nombre_materia_prima }}</h1>
+            <p style="color: #666; margin-top: 5px;">Unidad: <strong>{{ materia.unidad_medida }}</strong> | Stock Total: <strong>{{ materia.stock_total|floatformat:0 }}</strong></p>
+        </div>
+        <a href="{% url 'listar_materia_prima' %}" class="btn btn-cancelar">Volver al Inventario</a>
+    </div>
+
+    <!-- Lotes Activos -->
+    <h3 style="margin-bottom: 15px; color: var(--black);">Lotes con Existencias</h3>
+    <div class="table-responsive" style="margin-bottom: 40px;">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID Lote</th>
+                    <th>Ingreso</th>
+                    <th>Vencimiento</th>
+                    <th>Cantidad Inicial</th>
+                    <th>Cantidad Actual</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lote in lotes %}
+                <tr {% if lote.fecha_vencimiento and lote.fecha_vencimiento < fecha_actual.date %}style="background-color: #fff5f5;"{% endif %}>
+                    <td>#{{ lote.id }}</td>
+                    <td>{{ lote.fecha_ingreso|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {{ lote.fecha_vencimiento|date:"d/m/Y"|default:"—" }}
+                        {% if lote.fecha_vencimiento and lote.fecha_vencimiento < fecha_actual.date %}
+                        <span style="color:red; font-size: 0.8em; display:block;">VENCIDO</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ lote.cantidad_inicial|floatformat:0 }}</td>
+                    <td style="font-weight: 800; color: var(--primary);">{{ lote.cantidad_actual|floatformat:0 }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'pre_editar_lote' lote.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_lote' lote.id %}" class="btn-danger" 
+                           onclick="return confirm('¿Eliminar este lote permanentemente?')">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #999;">No hay lotes con existencias disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Historial de Lotes Agotados -->
+    {% if lotes_agotados %}
+    <h3 style="margin-bottom: 15px; color: #888;">Últimos Lotes Agotados</h3>
+    <div class="table-responsive">
+        <table class="custom-table" style="opacity: 0.7;">
+            <thead>
+                <tr>
+                    <th>ID Lote</th>
+                    <th>Ingreso</th>
+                    <th>Vencimiento</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lote in lotes_agotados %}
+                <tr>
+                    <td>#{{ lote.id }}</td>
+                    <td>{{ lote.fecha_ingreso|date:"d/m/Y" }}</td>
+                    <td>{{ lote.fecha_vencimiento|date:"d/m/Y"|default:"—" }}</td>
+                    <td>${{ lote.precio_unidad }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

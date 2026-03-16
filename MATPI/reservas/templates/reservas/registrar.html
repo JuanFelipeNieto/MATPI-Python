@@ -22,15 +22,14 @@
         </div>
 
         <div class="form-group">
-            <label for="txt_cajero">Cajero</label>
-            <select id="txt_cajero" name="txt_cajero">
-                <option value="">— Sin cajero —</option>
-                {% for cajero in cajeros %}
-                <option value="{{ cajero.usuario_id }}">{{ cajero }}</option>
+            <label for="txt_cliente">Cliente (Escriba nombre o documento)</label>
+            <input type="text" id="txt_cliente_search" list="clientes_list" name="txt_cliente_text" placeholder="Buscar cliente..." required autocomplete="off">
+            <datalist id="clientes_list">
+                {% for cliente in clientes %}
+                <option value="{{ cliente.nombre_completo }} ({{ cliente.id }})">
                 {% endfor %}
-            </select>
+            </datalist>
         </div>
-
         <button type="submit" class="btn btn-guardar">Guardar</button>
         <a href="{% url 'listar_reservas' %}" class="btn btn-cancelar">Cancelar</a>
     </form>

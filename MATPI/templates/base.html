@@ -108,9 +108,9 @@
             <a href="{% url 'dashboard' %}" class="topbar-logo-link">
                 <img src="{% static 'img/Logomatpi.png' %}" alt="Matpi" class="topbar-logo">
             </a>
-            <span class="topbar-title">{% block topbar_title %}Matpi{% endblock %}</span>
+            <span class="topbar-title">Matpi</span>
             
-            <a href="{% url 'logout' %}" class="logout-btn" style="margin-left: auto; color: white; text-decoration: none; padding: 8px 15px; font-size: 0.85em; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;">Cerrar Sesión</a>
+            <a href="{% url 'logout' %}" class="logout-btn" style="margin-left: auto; color: white; text-decoration: none; padding: 8px 15px; font-size: 0.85em; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px;" onclick="return confirm('¿Estás seguro de que deseas cerrar sesión?');">Cerrar Sesión</a>
         </header>
 
         <main>
@@ -133,8 +133,12 @@
             </div>
         </main>
 
-        <footer style="margin-top: auto; padding: 20px; text-align: center; font-size: 0.85em; color: #666; border-top: 1px solid #eee;">
-            <p>© 2026 Matpi. Gestión de Inventario y Ventas.</p>
+        <footer>
+            <p>© 2026 Matpi. Todos los derechos reservados.</p>
+            <ul class="footer-links">
+                <li><a href="#">Política de privacidad</a></li>
+                <li><a href="#">Términos de uso</a></li>
+            </ul>
         </footer>
     </div>
 

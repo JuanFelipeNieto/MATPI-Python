@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil — Matpi{% endblock %}
+{% block topbar_title %}Perfil de Usuario{% endblock %}
+
+{% block content %}
+<div class="profile-premium-container" style="max-width: 900px; margin: 0 auto; animation: fadeIn 0.5s ease-out;">
+    
+    <!-- Hero Section del Perfil -->
+    <div class="profile-hero" style="background: linear-gradient(135deg, var(--black) 0%, #1a1a1a 100%); border-radius: 20px; padding: 40px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2); margin-bottom: 30px; border: 1px solid rgba(255,159,0,0.2);">
+        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: var(--primary); opacity: 0.05; border-radius: 50%;"></div>
+        
+        <div style="display: flex; align-items: center; gap: 30px; position: relative; z-index: 1;">
+            <div class="profile-avatar-large" style="width: 120px; height: 120px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; box-shadow: 0 0 25px rgba(255,159,0,0.3); border: 4px solid #fff;">
+                👤
+            </div>
+            
+            <div class="profile-intro">
+                <h1 style="color: var(--white); margin: 0; font-size: 2.2rem; letter-spacing: -0.5px;">{{ usuario.nombre_completo }}</h1>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                    <span style="background: var(--primary); color: var(--black); font-weight: 800; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; text-transform: uppercase;">
+                        {% if es_admin %}Administrador{% else %}Cajero{% endif %}
+                    </span>
+                    <span style="color: #888; font-size: 0.9rem;">
+                        {{ usuario.correo_electronico }}
+                    </span>
+                </div>
+            </div>
+
+            {% if es_admin %}
+            <div style="margin-left: auto;">
+                <a href="{% url 'pre_editar_usuario' usuario.id %}" class="btn" style="background: var(--primary); color: var(--black); padding: 12px 25px; border-radius: 12px; font-weight: 700; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                    <span>⚙️</span> Editar Perfil
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Info Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+        
+        <!-- Tarjeta de Detalles Personales -->
+        <div class="info-card" style="background: var(--white); border-radius: 15px; padding: 25px; box-shadow: var(--shadow); border: 1px solid #f0f0f0;">
+            <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--black);">
+                <span style="color: var(--primary);">📇</span> Detalles Personales
+            </h3>
+            
+            <div style="display: grid; gap: 12px;">
+                <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid #eee;">
+                    <small style="display: block; color: #888; text-transform: uppercase; font-size: 0.65rem; font-weight: 700; margin-bottom: 2px;">Numero de documento</small>
+                    <span style="font-weight: 600; color: #333;">{{ usuario.id }}</span>
+                </div>
+                
+                <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid #eee;">
+                    <small style="display: block; color: #888; text-transform: uppercase; font-size: 0.65rem; font-weight: 700; margin-bottom: 2px;">Fecha de Nacimiento</small>
+                    <span style="font-weight: 600; color: #333;">{{ usuario.fecha_nacimiento|date:"d \d\e F, Y"|default:"No registrada" }}</span>
+                </div>
+
+                <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid #eee;">
+                    <small style="display: block; color: #888; text-transform: uppercase; font-size: 0.65rem; font-weight: 700; margin-bottom: 2px;">Dirección</small>
+                    <span style="font-weight: 600; color: #333;">{{ usuario.direccion|default:"No registrada" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Info Laboral -->
+        <div class="info-card" style="background: var(--white); border-radius: 15px; padding: 25px; box-shadow: var(--shadow); border: 1px solid #f0f0f0;">
+            <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--black);">
+                <span style="color: var(--primary);">💼</span> Información Laboral
+            </h3>
+            
+            <div style="display: grid; gap: 12px;">
+                <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid #eee;">
+                    <small style="display: block; color: #888; text-transform: uppercase; font-size: 0.65rem; font-weight: 700; margin-bottom: 2px;">Fecha de Ingreso</small>
+                    <span style="font-weight: 600; color: #333;">{{ usuario.fecha_ingreso|date:"d \d\e F, Y"|default:"No registrada" }}</span>
+                </div>
+
+                {% if usuario.cajero %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid var(--primary);">
+                        <small style="display: block; color: #888; font-size: 0.65rem; font-weight: 700;">EPS</small>
+                        <span style="font-weight: 600;">{{ usuario.cajero.eps }}</span>
+                    </div>
+                    <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid var(--primary);">
+                        <small style="display: block; color: #888; font-size: 0.65rem; font-weight: 700;">Turno Asignado</small>
+                        <span style="font-weight: 600;">{{ usuario.cajero.turno }}</span>
+                    </div>
+                </div>
+
+                <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid var(--primary);">
+                    <small style="display: block; color: #888; font-size: 0.65rem; font-weight: 700;">Contrato</small>
+                    <span style="font-weight: 600;">{{ usuario.cajero.tipo_contrato }}</span>
+                    {% if usuario.cajero.fecha_terminacion_contrato %}
+                        <small style="color: #666;"> (Finaliza: {{ usuario.cajero.fecha_terminacion_contrato|date:"d/m/Y" }})</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div style="padding: 10px; border-radius: 10px; border-left: 4px solid {% if usuario.estado == 'Activo' %}#28a745{% elif usuario.estado == 'Vacaciones' %}#ff9f00{% else %}#dc3545{% endif %}; background: {% if usuario.estado == 'Activo' %}#f0fff4{% elif usuario.estado == 'Vacaciones' %}#fff9f0{% else %}#fff5f5{% endif %};">
+                    <small style="display: block; color: #888; text-transform: uppercase; font-size: 0.65rem; font-weight: 700; margin-bottom: 2px;">Estado de Cuenta</small>
+                    <span style="font-weight: 800; color: {% if usuario.estado == 'Activo' %}#28a745{% elif usuario.estado == 'Vacaciones' %}#ff9f00{% else %}#dc3545{% endif %}; text-transform: uppercase; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                        {% if usuario.estado == 'Activo' %}🟢{% elif usuario.estado == 'Vacaciones' %}🟡{% else %}🔴{% endif %}
+                        {{ usuario.estado }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {% if usuario.cajero %}
+        <!-- Tarjeta de Contacto de Emergencia -->
+        <div class="info-card" style="background: var(--white); border-radius: 15px; padding: 25px; box-shadow: var(--shadow); border: 1px solid #f0f0f0; grid-column: span 1;">
+            <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--black);">
+                <span style="color: var(--danger);">🚨</span> Contacto de Emergencia
+            </h3>
+            <div style="padding: 20px; background: #fff5f5; border-radius: 12px; border: 1px solid #fed7d7;">
+                <div style="margin-bottom: 15px;">
+                    <small style="display: block; color: #c53030; text-transform: uppercase; font-size: 0.65rem; font-weight: 800;">Nombre del Contacto</small>
+                    <span style="font-weight: 700; color: #2d3748; font-size: 1.1rem;">{{ usuario.cajero.contacto_emergencia_nombre }}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <small style="display: block; color: #c53030; text-transform: uppercase; font-size: 0.65rem; font-weight: 800;">Parentesco</small>
+                        <span style="font-weight: 600;">{{ usuario.cajero.contacto_emergencia_parentesco }}</span>
+                    </div>
+                    <div>
+                        <small style="display: block; color: #c53030; text-transform: uppercase; font-size: 0.65rem; font-weight: 800;">Teléfono</small>
+                        <span style="font-weight: 800; color: #c53030;">{{ usuario.cajero.contacto_emergencia_numero }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+</style>
+{% endblock %}

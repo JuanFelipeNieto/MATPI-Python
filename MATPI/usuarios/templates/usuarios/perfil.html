@@ -2,9 +2,15 @@
 {% load static %}
 
 {% block title %}Mi Perfil — Matpi{% endblock %}
-{% block topbar_title %}Perfil de Usuario{% endblock %}
+
 
 {% block content %}
+<div class="content-header" style="margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
+    <h1 style="color: var(--black); font-weight: 800; font-size: 2rem; margin: 0; display: flex; align-items: center; gap: 12px;">
+        <span style="background: var(--primary); width: 8px; height: 32px; border-radius: 4px; display: inline-block;"></span>
+        Mi Perfil
+    </h1>
+</div>
 <div class="profile-premium-container" style="max-width: 900px; margin: 0 auto; animation: fadeIn 0.5s ease-out;">
     
     <!-- Hero Section del Perfil -->
@@ -49,7 +55,7 @@
             
             <div style="display: grid; gap: 12px;">
                 <div style="padding: 10px; background: #fafafa; border-radius: 10px; border-left: 3px solid #eee;">
-                    <small style="display: block; color: #888; text-transform: uppercase; font-size: 0.65rem; font-weight: 700; margin-bottom: 2px;">Documento de Identidad</small>
+                    <small style="display: block; color: #888; text-transform: uppercase; font-size: 0.65rem; font-weight: 700; margin-bottom: 2px;">Numero de documento</small>
                     <span style="font-weight: 600; color: #333;">{{ usuario.id }}</span>
                 </div>
                 

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Materia Prima — Matpi{% endblock %}
+{% block topbar_title %}Editar Materia Prima{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Editar Materia Prima</h1>
+
+    <form method="POST" action="{% url 'editar_materia_prima' %}">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ materia_prima.id }}">
+
+
+
+        <div class="form-group">
+            <label for="txt_nombre">Nombre</label>
+            <input type="text" id="txt_nombre" name="txt_nombre" value="{{ materia_prima.nombre_materia_prima }}"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_unidad">Unidad de Medida</label>
+            <input type="text" id="txt_unidad" name="txt_unidad" value="{{ materia_prima.unidad_medida|default:'' }}"
+                placeholder="Ej: kg, litros, unidades">
+        </div>
+     
+
+        <button type="submit" class="btn btn-guardar">Actualizar</button>
+        <a href="{% url 'listar_materia_prima' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

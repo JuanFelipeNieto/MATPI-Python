@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.utils import timezone
+import re
 from .models import Pedido
 from usuarios.models import Cajero, Administrador # Importamos Administrador para validar
 from reservas.models import Reserva
@@ -32,9 +34,7 @@ def listar_pedidos(request):
     return render(request, 'pedidos/listar.html', _obtener_contexto_rol(request, {'pedidos': pedidos}))
 
 def mostrar_registro_pedido(request):
-    # El cajero SI puede entrar aquí para registrar
     datos = {
-        'cajeros': Cajero.objects.all(),
         'reservas': Reserva.objects.all(),
         'clientes': Cliente.objects.all(),
     }
@@ -42,17 +42,35 @@ def mostrar_registro_pedido(request):
 
 def registrar_pedido(request):
     if request.method == 'POST':
-        # ... (tu lógica de captura de datos se mantiene igual)
-        cajero_id = request.POST.get('txt_cajero')
-        reserva_id = request.POST.get('txt_reserva')
-        cliente_id = request.POST.get('txt_cliente')
+        # Datos automáticos
+        fecha = timezone.now().date()
+        
+        # Asignación automática del cajero
+        usuario_id = request.session.get('usuario_id')
+        cajero = None
+        if usuario_id:
+            try:
+                cajero = Cajero.objects.get(pk=usuario_id)
+            except Cajero.DoesNotExist:
+                pass
 
-        cajero = Cajero.objects.get(pk=cajero_id) if cajero_id else None
-        reserva = Reserva.objects.get(pk=reserva_id) if reserva_id else None
+        # Procesar Reserva (Formato "Reserva #ID")
+        reserva_text = request.POST.get('txt_reserva_text')
+        reserva = None
+        if reserva_text:
+            match = re.search(r'#(\d+)$', reserva_text)
+            if match:
+                reserva_id = match.group(1)
+                try:
+                    reserva = Reserva.objects.get(pk=reserva_id)
+                except Reserva.DoesNotExist:
+                    pass
+
+        cliente_id = request.POST.get('txt_cliente')
         cliente = Cliente.objects.get(pk=cliente_id) if cliente_id else None
 
         pedido = Pedido.objects.create(
-            fecha=request.POST.get('txt_fecha'),
+            fecha=fecha,
             estado=True,
             valor=request.POST.get('txt_valor'),
             numero_orden=request.POST.get('txt_numero_orden'),
@@ -62,6 +80,7 @@ def registrar_pedido(request):
             cliente=cliente,
         )
         _generar_factura_si_necesario(pedido)
+        messages.success(request, f"Pedido #{pedido.id} registrado con éxito.")
         return redirect('listar_pedidos')
     return redirect('mostrar_registro_pedido')
 

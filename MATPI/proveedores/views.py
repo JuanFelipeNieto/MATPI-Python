@@ -138,22 +138,29 @@ def registrar_suministro_materia(request):
                 proveedor = get_object_or_404(Proveedor, pk=proveedor_id)
                 materia   = get_object_or_404(MateriaPrima, pk=materia_id)
                 
+                # Import Lote from materia_prima.models (locally to avoid circularity if needed, 
+                # but views already imports Proveedor, MateriaPrima, etc. so we should check imports)
+                from materia_prima.models import Lote
+                
                 # Crear el registro del suministro
                 DetalleProveedorMateriaP.objects.create(
                     proveedor=proveedor,
                     materia_prima=materia,
-                    precio_unitario=precio,
-                    fecha_suministro=fecha or None,
+                    precio_unitario=precio or 0,
+                    fecha_suministro=fecha or timezone.now(),
                     fecha_vencimiento=vencimiento or None
                 )
                 
-                # Incrementar el stock y actualizar fecha de vencimiento
-                materia.cantidad = float(materia.cantidad) + cantidad
-                if vencimiento:
-                    materia.fecha_vencimiento = vencimiento
-                materia.save()
+                # Crear el nuevo lote funcional
+                Lote.objects.create(
+                    materia_prima=materia,
+                    cantidad_inicial=cantidad,
+                    cantidad_actual=cantidad,
+                    fecha_vencimiento=vencimiento or None,
+                    precio_unidad=precio or 0
+                )
                 
-                messages.success(request, f"Se han registrado {cantidad} de {materia.nombre_materia_prima} del proveedor {proveedor.nombre_proveedor}.")
+                messages.success(request, f"Se han registrado {cantidad} de {materia.nombre_materia_prima} como un nuevo lote.")
         except Exception as e:
             messages.error(request, f"Error al registrar suministro: {str(e)}")
             

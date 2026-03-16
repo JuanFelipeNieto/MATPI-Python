@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Lote #{{ lote.id }} — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="margin: 0;">Editar Lote #{{ lote.id }}</h1>
+        <span class="badge" style="background: var(--primary); padding: 8px 15px; border-radius: 20px; color: white;">
+            {{ lote.materia_prima.nombre_materia_prima }}
+        </span>
+    </div>
+
+    <form action="{% url 'editar_lote' %}" method="POST" class="custom-form">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ lote.id }}">
+
+        <div class="form-group">
+            <label for="txt_cantidad">Cantidad Actual (Disponible)</label>
+            <input type="number" id="txt_cantidad" name="txt_cantidad" value="{{ lote.cantidad_actual|floatformat:0 }}" required min="0">
+            <small style="color: #888;">Cantidad recibida originalmente: {{ lote.cantidad_inicial|floatformat:0 }}</small>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha_vencimiento">Fecha de Vencimiento</label>
+            <input type="date" id="txt_fecha_vencimiento" name="txt_fecha_vencimiento" 
+                   value="{{ lote.fecha_vencimiento|date:'Y-m-d'|default:'' }}">
+        </div>
+
+        <div class="form-acciones" style="margin-top: 30px; display: flex; gap: 15px;">
+            <button type="submit" class="btn btn-guardar">Guardar Cambios</button>
+            <a href="{% url 'ver_lotes' lote.materia_prima.id %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
