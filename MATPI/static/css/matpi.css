@@ -1,10 +1,4 @@
-/* ============================================
-   MATPI.CSS — Estilos globales del sistema
-   Paleta: Ámbar #ff9f00 / Negro #000
-   Sidebar: panel overlay desplegable
-   ============================================ */
 
-/* === Variables globales === */
 :root {
     --primary: #ff9f00;
     --primary-h: #e68a00;
@@ -26,7 +20,6 @@
     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* === Reset y Scrollbar === */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; }
 
@@ -35,9 +28,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-/* ================================================
-   SIDEBAR PREMIUM
-   ================================================ */
+
 .sidebar {
     position: fixed;
     top: 0;
@@ -78,7 +69,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
     background: var(--danger);
 }
 
-/* --- Header --- */
 .sidebar-header {
     padding: 25px 20px;
     display: flex;
@@ -101,7 +91,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
     -webkit-text-fill-color: transparent;
 }
 
-/* --- Nav & Sections --- */
+
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
@@ -161,7 +151,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
     transition: transform 0.3s ease;
 }
 
-/* --- Footer (User Profile Card) --- */
 .sidebar-footer {
     padding: 20px;
     background: rgba(255, 255, 255, 0.02);
@@ -182,9 +171,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
     border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
-/* ================================================
-   OVERLAY (fondo oscuro detrás del sidebar)
-   ================================================ */
+
 .sidebar-overlay {
     position: fixed;
     inset: 0;
@@ -200,18 +187,12 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
     visibility: visible;
 }
 
-/* ================================================
-   PAGE WRAPPER — ocupa siempre todo el ancho
-   ================================================ */
 .page-wrapper {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-/* ================================================
-   TOPBAR
-   ================================================ */
 .topbar {
     position: sticky;
     top: 0;
@@ -226,7 +207,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-/* Botón hamburguesa con 3 líneas */
 .topbar-menu-btn {
     background: none;
     border: none;
@@ -277,9 +257,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); over
     text-overflow: ellipsis;
 }
 
-/* ================================================
-   MAIN
-   ================================================ */
+
 main {
     flex: 1;
     padding: 28px 24px;
@@ -288,9 +266,7 @@ main {
     margin: 0 auto;
 }
 
-/* ================================================
-   FOOTER
-   ================================================ */
+
 footer {
     background-color: var(--black);
     color: var(--white);
@@ -326,9 +302,7 @@ footer p {
     color: var(--primary);
 }
 
-/* ================================================
-   DASHBOARD
-   ================================================ */
+
 .dashboard {
     padding-bottom: 30px;
 }
@@ -448,7 +422,7 @@ footer p {
     font-size: 0.79rem;
 }
 
-/* Productos destacados */
+
 .productos-dashboard {
     margin-bottom: 26px;
 }
@@ -671,6 +645,16 @@ input[type=number]::-webkit-outer-spin-button {
 
 .btn-cancelar:hover {
     background: var(--cancel-h);
+}
+
+.btn-azul {
+    background: #2980b9;
+    color: var(--white);
+}
+
+.btn-azul:hover {
+    background: #3498db;
+    transform: translateY(-2px);
 }
 
 .btn-editar,

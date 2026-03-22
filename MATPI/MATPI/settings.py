@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'proveedores',
     'reservas',
     'usuarios',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,7 @@ STATICFILES_DIRS = [
 
 # Configuración de Autenticación
 LOGIN_URL = 'login'
+
+# Configuración de archivos multimedia (Imágenes de productos)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

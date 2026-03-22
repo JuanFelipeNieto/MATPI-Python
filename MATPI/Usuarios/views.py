@@ -57,7 +57,7 @@ def login_view(request):
                 return render(request, 'usuarios/login.html')
 
         except Usuario.DoesNotExist:
-            messages.error(request, "ID o Contraseña incorrectos.")
+            messages.error(request, "Documento o Contraseña incorrectos.")
             return render(request, 'usuarios/login.html')
             
     return render(request, 'usuarios/login.html')
@@ -219,7 +219,15 @@ def editar_usuario(request):
                     cajero.save()
             
             messages.success(request, f"Datos de {usuario.nombre_completo} actualizados.")
-            if es_admin: return redirect('listar_usuarios')
+            
+            # Si el usuario edita su propio perfil, lo mandamos a su perfil
+            if str(user_actual.id) == str(usuario.id):
+                return redirect('ver_perfil', id=usuario.id)
+            
+            # Si un admin edita a otro, lo mandamos a la lista
+            if es_admin: 
+                return redirect('listar_usuarios')
+                
             return redirect('ver_perfil', id=usuario.id)
             
         except Exception as e:

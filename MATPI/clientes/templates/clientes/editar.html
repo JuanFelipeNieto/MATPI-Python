@@ -27,6 +27,21 @@
         </div>
 
         <div class="form-group">
+            <label for="txt_direccion">Dirección</label>
+            <input type="text" id="txt_direccion" name="txt_direccion" value="{{ cliente.direccion|default:'' }}" placeholder="Ingrese dirección residencial">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_localidad">Localidad (Bogotá)</label>
+            <select id="txt_localidad" name="txt_localidad" class="form-control">
+                <option value="">Seleccione una localidad</option>
+                {% for loc in localidades %}
+                    <option value="{{ loc }}" {% if cliente.localidad == loc %}selected{% endif %}>{{ loc }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
             <label for="txt_cajero">Cajero</label>
             <select id="txt_cajero" name="txt_cajero">
                 <option value="">— Sin cajero —</option>

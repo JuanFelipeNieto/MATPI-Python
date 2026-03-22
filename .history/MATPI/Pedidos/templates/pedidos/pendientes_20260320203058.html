@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedidos en Preparación — Matpi{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pendientes-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .grid-pendientes {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    .pedido-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        padding: 20px;
+        border-left: 5px solid var(--primary);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .pedido-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+    .badge-orden {
+        background: var(--black);
+        color: var(--primary);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .tiempo-preparacion {
+        font-weight: 600;
+        color: #e63946;
+        background: #ffe5e5;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+    .pedido-info {
+        margin-bottom: 15px;
+    }
+    .pedido-info p {
+        margin: 5px 0;
+        font-size: 0.95rem;
+        color: #444;
+    }
+    .productos-lista {
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    .producto-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+    .btn-entregar {
+        background: #2b9348;
+        color: white;
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    .btn-entregar:hover {
+        background: #007f5f;
+    }
+    .vacio {
+        text-align: center;
+        padding: 50px;
+        color: #888;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pendientes-container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar" style="margin-bottom: 10px; display: inline-block;">← Volver</a>
+            <h1>Pedidos en Preparación</h1>
+        </div>
+        <div style="background: white; padding: 10px 20px; border-radius: 8px; box-shadow: var(--shadow);">
+            <strong id="reloj-actual">{{ ahora|date:"H:i:s" }}</strong>
+        </div>
+    </div>
+
+    {% if pedidos %}
+    <div class="grid-pendientes">
+        {% for pedido in pedidos %}
+        <div class="pedido-card" id="pedido-{{ pedido.id }}">
+            <div class="pedido-header">
+                <div>
+                    <span class="badge-orden">#ORDEN {{ pedido.numero_orden }}</span>
+                    <p style="margin-top: 8px; font-size: 0.8rem; color: #777;">ID: {{ pedido.id }} | {{ pedido.fecha|date:"H:i" }}</p>
+                </div>
+                <div class="tiempo-preparacion" data-inicio="{{ pedido.fecha.isoformat }}">
+                    Calculando...
+                </div>
+            </div>
+
+            <div class="pedido-info">
+                <p><strong>Cliente:</strong> {{ pedido.cliente.nombre_completo|default:"Particular" }}</p>
+                <p><strong>Pago:</strong> {{ pedido.metodo_pago }}</p>
+            </div>
+
+            <div class="productos-lista">
+                {% for detalle in pedido.detalles.all %}
+                <div class="producto-item">
+                    <span>{{ detalle.cantidad }}x {{ detalle.producto.nombre_producto }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <a href="{% url 'entregar_pedido' pedido.id %}" class="btn-entregar" onclick="return confirm('¿Confirmar entrega del pedido #{{ pedido.numero_orden }}?')">
+                MARCAR COMO ENTREGADO
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="vacio">
+        <p>No hay pedidos pendientes en este momento. ✨</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function actualizarTiempos() {
+        const ahora = new Date();
+        
+        // Actualizar reloj general
+        document.getElementById('reloj-actual').innerText = ahora.toLocaleTimeString();
+
+        // Actualizar contadores de cada tarjeta
+        document.querySelectorAll('.tiempo-preparacion').forEach(elemento => {
+            const fechaInicio = new Date(elemento.getAttribute('data-inicio'));
+            const diferencia = ahora - fechaInicio;
+            
+            const minutos = Math.floor(diferencia / 60000);
+            const segundos = Math.floor((diferencia % 60000) / 1000);
+            
+            elemento.innerText = `⏱️ ${minutos}m ${segundos}s`;
+        });
+    }
+
+    // Actualizar cada segundo
+    setInterval(actualizarTiempos, 1000);
+    actualizarTiempos();
+
+    // Recargar la página cada 30 segundos para traer nuevos pedidos automáticamente
+    setTimeout(() => {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}

@@ -21,8 +21,29 @@
 
         <div class="form-group">
             <label for="txt_unidad">Unidad de Medida</label>
-            <input type="text" id="txt_unidad" name="txt_unidad" value="{{ materia_prima.unidad_medida|default:'' }}"
-                placeholder="Ej: kg, litros, unidades">
+            <select id="txt_unidad" name="txt_unidad" required>
+                <option value="kg" {% if materia_prima.unidad_medida == 'kg' %}selected{% endif %}>Kilogramo (kg)</option>
+                <option value="g" {% if materia_prima.unidad_medida == 'g' %}selected{% endif %}>Gramo (g)</option>
+                <option value="L" {% if materia_prima.unidad_medida == 'L' %}selected{% endif %}>Litro (L)</option>
+                <option value="ml" {% if materia_prima.unidad_medida == 'ml' %}selected{% endif %}>Mililitro (ml)</option>
+                <option value="und" {% if materia_prima.unidad_medida == 'und' %}selected{% endif %}>Unidad (und)</option>
+                <option value="paq" {% if materia_prima.unidad_medida == 'paq' %}selected{% endif %}>Paquete (paq)</option>
+                <option value="lb" {% if materia_prima.unidad_medida == 'lb' %}selected{% endif %}>Libra (lb)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_cantidad_unidad">Cantidad por Unidad (Equivalencia)</label>
+            <input type="number" id="txt_cantidad_unidad" name="txt_cantidad_unidad" step="1" value="{{ materia_prima.cantidad_por_unidad }}" required>
+            <small>Ej: Si 1 caja tiene 24 unidades, ingrese 24.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_tipo">Tipo de Materia Prima</label>
+            <select id="txt_tipo" name="txt_tipo" required>
+                <option value="Comida" {% if materia_prima.tipo == 'Comida' %}selected{% endif %}>Para Comida (Ingrediente)</option>
+                <option value="Bebida" {% if materia_prima.tipo == 'Bebida' %}selected{% endif %}>Bebida (Venta directa)</option>
+            </select>
         </div>
      
 

@@ -12,7 +12,7 @@
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>No° Factura</th>
                     <th>Valor Total</th>
                     <th>IVA (%)</th>
                     <th>Descripción</th>
@@ -29,7 +29,6 @@
                     <td>{{ factura.descripcion|default:"—" }}</td>
                     <td>{{ factura.pedido }}</td>
                     <td class="acciones">
-                        <a href="{% url 'pre_editar_factura' factura.id %}" class="btn-editar">Editar</a>
                         <a href="{% url 'eliminar_factura' factura.id %}" class="btn-danger"
                             onclick="return confirm('¿Eliminar esta factura?')">Eliminar</a>
                     </td>

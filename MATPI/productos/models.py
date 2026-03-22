@@ -14,12 +14,13 @@ class Producto(models.Model):
         ('Salsas', 'Salsas'),
     ]
 
-    id = models.PositiveSmallIntegerField('ID', primary_key=True)
+    id = models.AutoField(primary_key=True)
     nombre_producto = models.CharField('Nombre del Producto', max_length=50)
     descripcion = models.TextField('Descripción', max_length=255, blank=True, null=True)
     cantidad = models.PositiveSmallIntegerField('Cantidad en Stock', default=0)
     precio = models.PositiveIntegerField('Precio')
     categoria = models.CharField('Categoría', max_length=20, choices=CATEGORIAS, blank=True, null=True)
+    imagen = models.ImageField('Imagen del Producto', upload_to='productos/', blank=True, null=True)
 
     class Meta:
         db_table = 'Producto'

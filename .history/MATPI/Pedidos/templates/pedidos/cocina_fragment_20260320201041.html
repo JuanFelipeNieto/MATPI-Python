@@ -1,0 +1,32 @@
+{% if pedidos %}
+<div class="grid-cocina" id="cocina-grid">
+    {% for pedido in pedidos %}
+    <div class="order-card" id="pedido-{{ pedido.id }}">
+        <div class="order-header">
+            <span class="order-num">ORDEN #{{ pedido.numero_orden }}</span>
+            <span class="timer" data-inicio="{{ pedido.fecha.isoformat }}">...</span>
+        </div>
+        <ul class="product-list">
+            {% for detalle in pedido.detalles.all %}
+            <li class="product-item">
+                <span class="qty">{{ detalle.cantidad }}</span>
+                <div>
+                    <strong>{{ detalle.producto.nombre_producto }}</strong>
+                    {% if detalle.materias_excluidas.exists %}
+                    <div class="exclusions">
+                        NOTAS: SIN ({% for m in detalle.materias_excluidas.all %}{{ m.nombre_materia_prima }}{% if not forloop.last %}, {% endif %}{% endfor %})
+                    </div>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align: center; margin-top: 100px; opacity: 0.5;" id="cocina-vacia">
+    <h2 style="font-size: 3rem;">SIN PEDIDOS PENDIENTES</h2>
+    <p style="font-size: 1.5rem;">Buen trabajo, equipo.</p>
+</div>
+{% endif %}

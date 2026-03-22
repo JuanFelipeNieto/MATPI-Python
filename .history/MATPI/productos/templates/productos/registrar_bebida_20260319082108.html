@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Bebida — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Bebida</h1>
+
+    <form method="POST" action="{% url 'registrar_producto' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Categoría fija para Bebidas -->
+        <input type="hidden" name="txt_categoria" value="Bebidas">
+
+        <div class="form-group">
+            <label for="txt_nombre">Nombre de la Bebida</label>
+      
+        <div class="form-group">
+            <label for="materia_id"></label>
+            <select name="materia_id[]" id="materia_id" class="form-control" required>
+                <option value="">— Seleccione la bebida en inventario —</option>
+                {% for materia in materias_primas %}
+                    <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} ({{ materia.unidad_medida }})</option>
+                {% endfor %}
+            </select>
+            <small style="color: #64748b; margin-top: 5px; display: block;">
+                Seleccione el ítem del inventario (materia prima) que corresponde a esta bebida. 
+                Se descontará 1 unidad por cada venta.
+            </small>
+            <!-- Cantidad fija de 1 para bebidas simples -->
+            <input type="hidden" name="materia_cantidad[]" value="1">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_precio">Precio de Venta</label>
+            <input type="number" id="txt_precio" name="txt_precio" placeholder="Ingrese precio" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_imagen">Imagen (Opcional)</label>
+            <input type="file" id="txt_imagen" name="txt_imagen" accept="image/*">
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-guardar">Guardar Bebida</button>
+            <a href="{% url 'listar_productos' %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

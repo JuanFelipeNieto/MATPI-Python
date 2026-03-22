@@ -3,7 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.listar_productos, name='listar_productos'),
-    path('registrar/', views.mostrar_registro_producto, name='mostrar_registro_producto'),
+    path('registrar/comida/', views.mostrar_registro_comida, name='mostrar_registro_comida'),
+    path('registrar/bebida/', views.mostrar_registro_bebida, name='mostrar_registro_bebida'),
     path('registrar/guardar/', views.registrar_producto, name='registrar_producto'),
     path('editar/<int:id>/', views.pre_editar_producto, name='pre_editar_producto'),
     path('editar/guardar/', views.editar_producto, name='editar_producto'),

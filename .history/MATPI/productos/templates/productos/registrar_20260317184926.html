@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Producto — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Producto</h1>
+
+    <form method="POST" action="{% url 'registrar_producto' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+
+
+        <div class="form-group">
+            <label for="txt_nombre">Nombre del Producto</label>
+            <input type="text" id="txt_nombre" name="txt_nombre" placeholder="Nombre del producto" required>
+        </div>
+
+        <div class="form-group">
+            <label>Ingredientes</label>
+            <div class="table-container">
+                <table class="table" id="tabla-composicion">
+                    <thead>
+                        <tr>
+                            <th>Materia Prima</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-composicion">
+                        <tr class="fila-materia">
+                            <td>
+                                <select name="materia_id[]" class="form-control" required>
+                                    <option value="">— Seleccione —</option>
+                                    {% for materia in materias_primas %}
+                                        <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} ({{ materia.unidad_medida }})</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" name="materia_cantidad[]" class="form-control" value="1" min="1" required>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-cancelar btn-sm" onclick="eliminarFila(this)">Eliminar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button type="button" class="btn btn-azul btn-sm" onclick="agregarFila()" style="margin-top: 10px;">+ Agregar Materia Prima</button>
+            <p><small>* El stock del producto se calculará automáticamente según la disponibilidad de estas materias primas.</small></p>
+        </div>
+
+        <!-- Eliminamos el campo manual de Cantidad en Stock ya que ahora es automático -->
+
+        <div class="form-group">
+            <label for="txt_precio">Precio</label>
+            <input type="number" id="txt_precio" name="txt_precio" placeholder="Ingrese precio" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_categoria">Categoría</label>
+            <select id="txt_categoria" name="txt_categoria">
+                <option value="">— Seleccione —</option>
+                <option value="Hamburguesas">Hamburguesas</option>
+                <option value="Perros Calientes">Perros Calientes</option>
+                <option value="Entradas y Snacks">Entradas y Snacks</option>
+                <option value="Combos">Combos</option>
+                <option value="Bebidas">Bebidas</option>
+                <option value="Postres">Postres</option>
+                <option value="Adiciones">Adiciones</option>
+                <option value="Salsas">Salsas</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_imagen">Imagen del Producto</label>
+            <input type="file" id="txt_imagen" name="txt_imagen" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <a href="{% url 'listar_productos' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+
+<script>
+    function agregarFila() {
+        const tbody = document.getElementById('body-composicion');
+        const filas = tbody.getElementsByClassName('fila-materia');
+        const nuevaFila = filas[0].cloneNode(true);
+        const select = nuevaFila.querySelector('select');
+        const input = nuevaFila.querySelector('input');
+        if(select) select.value = "";
+        if(input) input.value = "1";
+        tbody.appendChild(nuevaFila);
+    }
+    function eliminarFila(boton) {
+        const tbody = document.getElementById('body-composicion');
+        if (tbody.rows.length > 1) {
+            boton.closest('tr').remove();
+        } else {
+            alert("El producto debe tener al menos una materia prima.");
+        }
+    }
+</script>
+{% endblock %}

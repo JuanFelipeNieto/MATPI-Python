@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Importar Materia Prima — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Importar Materia Prima desde Excel</h1>
+    <p>Suba un archivo Excel (.xlsx) con los datos de las materias primas.</p>
+
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid var(--primary);">
+        <h3 style="margin-top: 0;">Formato del archivo:</h3>
+        <ul>
+            <li><strong>Primera :</strong> Nombre (ej: Harina)</li>
+            <li><strong>Columna B:</strong> Unidad de Medida (kg, g, L, ml, und, paq, lb)</li>
+            <li><strong>Columna C:</strong> Cantidad por Unidad (ej: 1.0)</li>
+            <li><strong>Columna D:</strong> Tipo (Comida o Bebida)</li>
+        </ul>
+        <p><small>* La primera fila se considera encabezado y será ignorada.</small></p>
+    </div>
+
+    <div class="alert alert-warning" style="margin-bottom: 25px;">
+        <i class="fas fa-exclamation-triangle"></i> <strong>IMPORTANTE:</strong> Se deben importar las materias primas <strong>antes</strong> de importar los lotes.
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="archivo_excel">Seleccionar Archivo Excel</label>
+            <input type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx" required>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-guardar">Importar Datos</button>
+            <a href="{% url 'listar_materia_prima' %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

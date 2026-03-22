@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Materia Prima — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Materia Prima</h1>
+
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_materia_prima' %}">
+                <input type="text" name="buscar" placeholder="Buscar por nombre" value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        
+        {% if es_admin %}
+        <div class="acciones-header" style="display: flex; gap: 10px;">
+            <a href="{% url 'mostrar_registro_materia_prima' %}" class="btn btn-guardar">+ Nueva Materia Prima</a>
+            <a href="{% url 'importar_materia_prima_excel' %}" class="btn btn-azul">Importar Materias primas</a>
+            <a href="{% url 'importar_lotes_excel' %}" class="btn btn-azul" style="background: #778898;">Importar Lotes</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Unidad de Medida</th>
+                    <th>Cantidad</th>
+                    <th>Lotes Ingresados</th>
+                    {# Mantenemos la columna de acciones solo para el Admin #}
+                    {% if es_admin %}
+                    <th>Acciones</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for mp in materia_primas %}
+                <tr>
+                    <td>{{ mp.nombre_materia_prima }}</td>
+                    <td>{{ mp.unidad_medida|default:"—" }}</td>
+                    <td style="font-weight: 700;">{{ mp.stock_total|floatformat:0 }}</td>
+                    <td style="text-align: center;">{{ mp.lotes.count }}</td>
+                    
+                    <td class="acciones">
+                        <a href="{% url 'ver_lotes' mp.id %}" class="btn-editar" style="background: #6c757d;">📦 Lotes</a>
+                        {% if es_admin %}
+                        <a href="{% url 'pre_editar_materia_prima' mp.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_materia_prima' mp.id %}" class="btn-danger"
+                            onclick="return confirm('¿Eliminar esta materia prima?')">Eliminar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if es_admin %}6{% else %}5{% endif %}" style="text-align:center;">
+                        No hay materias primas registradas.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

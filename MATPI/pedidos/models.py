@@ -3,6 +3,7 @@ from usuarios.models import Cajero
 from reservas.models import Reserva
 from clientes.models import Cliente
 from productos.models import Producto
+from materia_prima.models import MateriaPrima
 
 
 class Pedido(models.Model):
@@ -18,7 +19,8 @@ class Pedido(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
-    fecha = models.DateField('Fecha')
+    fecha = models.DateTimeField('Fecha y Hora', auto_now_add=True)
+    fecha_entrega = models.DateTimeField('Fecha Entrega', null=True, blank=True)
     estado = models.BooleanField('Estado', default=True)
     valor = models.PositiveIntegerField('Valor Total')
     numero_orden = models.PositiveSmallIntegerField('Número de Orden')
@@ -56,7 +58,17 @@ class Pedido(models.Model):
         db_table = 'Pedido'
 
     def __str__(self):
-        return f'Pedido #{self.id}  {self.fecha}'
+        return f'Pedido #{self.numero_orden} — {self.fecha.strftime("%d/%m/%Y %H:%M")}'
+
+    @property
+    def tiempo_preparacion_total(self):
+        """Calcula el tiempo total transcurrido desde el pedido hasta la entrega."""
+        if self.fecha and self.fecha_entrega:
+            delta = self.fecha_entrega - self.fecha
+            minutos = int(delta.total_seconds() // 60)
+            segundos = int(delta.total_seconds() % 60)
+            return f"{minutos}m {segundos}s"
+        return "N/A"
 
 
 class DetallePedidoProducto(models.Model):
@@ -85,6 +97,15 @@ class DetallePedidoProducto(models.Model):
     cantidad = models.PositiveSmallIntegerField('Cantidad')
     precio_unitario = models.PositiveIntegerField('Precio Unitario')
     estado = models.CharField('Estado', max_length=10, choices=ESTADOS, default='preparando')
+    
+    # Nuevo: Para exclusiones de materias primas por producto específico en el pedido
+    materias_excluidas = models.ManyToManyField(
+        MateriaPrima,
+        blank=True,
+        verbose_name='Materias Excluidas',
+        related_name='excluidas_en_pedidos'
+    )
+    notas = models.TextField('Notas/Modificaciones', max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = 'Details_Pedido_Producto'

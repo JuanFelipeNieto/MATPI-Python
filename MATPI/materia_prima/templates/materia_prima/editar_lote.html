@@ -17,8 +17,8 @@
 
         <div class="form-group">
             <label for="txt_cantidad">Cantidad Actual (Disponible)</label>
-            <input type="number" id="txt_cantidad" name="txt_cantidad" value="{{ lote.cantidad_actual|floatformat:0 }}" required min="0">
-            <small style="color: #888;">Cantidad recibida originalmente: {{ lote.cantidad_inicial|floatformat:0 }}</small>
+            <input type="number" id="txt_cantidad" name="txt_cantidad" value="{{ lote.cantidad_actual }}" required min="0" step="1">
+            <small style="color: #888;">Cantidad recibida originalmente: {{ lote.cantidad_inicial }}</small>
         </div>
 
         <div class="form-group">

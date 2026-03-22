@@ -1,108 +1,413 @@
 {% extends 'base.html' %}
 
-{% block title %}Editar Pedido — Matpi{% endblock %}
+{% block title %}Editar Pedido #{{ pedido.id }} — Matpi{% endblock %}
 
+{% block extra_css %}
+<style>
+    .order-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .order-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        border: 1px solid #eee;
+    }
+    .order-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        color: var(--primary);
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 8px;
+    }
+    .products-section {
+        background: #fff;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        margin-bottom: 30px;
+    }
+    .total-banner {
+        background: var(--black);
+        color: var(--white);
+        padding: 25px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    .total-banner h2 {
+        margin: 0;
+        color: var(--primary);
+        font-size: 2.2rem;
+    }
+    .btn-detalles {
+        background: #eef2f7;
+        color: #334155;
+    }
+    .btn-detalles:hover {
+        background: #e2e8f0;
+    }
+    .exclusion-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .exclusion-item:hover {
+        border-color: var(--primary);
+    }
+    .exclusion-item input {
+        width: auto !important;
+        margin: 0;
+    }
+    .fila-bebida {
+        background-color: #fff9f0 !important;
+    }
+    .subtotal-fila {
+        color: var(--primary);
+        font-weight: 700;
+    }
+    .readonly-field {
+        background-color: #f8fafc !important;
+        font-weight: bold;
+        color: var(--primary) !important;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="formulario-seccion">
-    <h1>Editar Pedido</h1>
+<div class="formulario-seccion" style="max-width: 1000px; padding: 0; background: transparent; box-shadow: none;">
+    <h1 style="margin-bottom: 30px;">Editar Pedido #{{ pedido.id }}</h1>
 
-    {% if not es_admin %}
-    <div class="alert alert-warning">
-        <strong>Modo lectura:</strong> Solo los administradores pueden modificar los datos de este pedido.
-    </div>
-    {% endif %}
-
-    <form method="POST" action="{% url 'editar_pedido' %}">
+    <form method="POST" action="{% url 'editar_pedido' %}" id="order-form">
         {% csrf_token %}
         <input type="hidden" name="txt_id" value="{{ pedido.id }}">
 
-        <div class="form-group">
-            <label>ID (automático)</label>
-            <input type="text" value="#{{ pedido.id }}" disabled>
+        <div class="order-grid">
+            <!-- Información General -->
+            <div class="order-card">
+                <h3>Información de Orden</h3>
+                <div class="form-group">
+                    <label for="txt_numero_orden">Número de Orden</label>
+                    <input type="number" id="txt_numero_orden" name="txt_numero_orden" value="{{ pedido.numero_orden }}" readonly class="readonly-field">
+                </div>
+                <div class="form-group">
+                    <label for="txt_fecha">Fecha</label>
+                    <input type="date" id="txt_fecha" name="txt_fecha" value="{{ pedido.fecha|date:'Y-m-d' }}" readonly class="readonly-field">
+                </div>
+                <div class="form-group">
+                    <label for="txt_metodo_pago">Método de Pago</label>
+                    <select id="txt_metodo_pago" name="txt_metodo_pago" disabled class="readonly-field">
+                        <option value="Efectivo" {% if pedido.metodo_pago == 'Efectivo' %}selected{% endif %}>Efectivo</option>
+                        <option value="Tarjeta Débito" {% if pedido.metodo_pago == 'Tarjeta Débito' %}selected{% endif %}>Tarjeta Débito</option>
+                        <option value="Tarjeta Crédito" {% if pedido.metodo_pago == 'Tarjeta Crédito' %}selected{% endif %}>Tarjeta Crédito</option>
+                        <option value="Nequi" {% if pedido.metodo_pago == 'Nequi' %}selected{% endif %}>Nequi</option>
+                        <option value="Daviplata" {% if pedido.metodo_pago == 'Daviplata' %}selected{% endif %}>Daviplata</option>
+                        <option value="PSE" {% if pedido.metodo_pago == 'PSE' %}selected{% endif %}>PSE</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Cliente, Reserva y Cajero -->
+            <div class="order-card">
+                <h3>Asociaciones</h3>
+                <div class="form-group">
+                    <label for="txt_cliente_search">Cliente</label>
+                    <input type="text" id="txt_cliente_search" list="clientes_list" placeholder="Busque por Nombre" autocomplete="off" oninput="sincronizarClienteId(this.value)" value="{{ pedido.cliente.nombre_completo|default:'' }}">
+                    <input type="hidden" id="txt_cliente_id" name="txt_cliente" value="{{ pedido.cliente_id|default:'' }}">
+                    <datalist id="clientes_list">
+                        {% for cliente in clientes %}
+                        <option value="{{ cliente.nombre_completo }}" data-id="{{ cliente.id }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="txt_reserva">Reserva Asociada</label>
+                    <select id="txt_reserva" name="txt_reserva">
+                        <option value="">— Sin reservas —</option>
+                        {% for reserva in reservas %}
+                        <option value="{{ reserva.id }}" data-cliente="{{ reserva.cliente.id }}" {% if pedido.reserva_id == reserva.id %}selected{% endif %}>
+                            Reserva #{{ reserva.id }} ({{ reserva.fecha|date:"d/m/Y" }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="txt_estado">Estado de Orden</label>
+                    <select id="txt_estado" name="txt_estado">
+                        <option value="1" {% if pedido.estado %}selected{% endif %}>Activo (En preparación)</option>
+                        <option value="0" {% if not pedido.estado %}selected{% endif %}>Completado (Entregado)</option>
+                    </select>
+                </div>
+                <input type="hidden" name="txt_cajero" value="{{ pedido.cajero_id|default:'' }}">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="txt_fecha">Fecha</label>
-            <input type="date" id="txt_fecha" name="txt_fecha" value="{{ pedido.fecha|date:'Y-m-d' }}" required 
-            {% if not es_admin %} disabled {% endif %}>
+        <!-- Productos -->
+        <div class="products-section">
+            <h3 style="margin-bottom: 20px; font-weight: bold;">Detalle del Pedido</h3>
+            <div class="table-responsive">
+                <table class="custom-table" id="tabla-productos">
+                    <thead>
+                        <tr style="background: #f8fafc;">
+                            <th>Descripción</th>
+                            <th style="width: 120px;">Cantidad</th>
+                            <th style="width: 150px;">Subtotal</th>
+                            <th>Personalizar</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-productos">
+                        <!-- Se poblará vía JavaScript con los detalles actuales -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" class="btn btn-azul" onclick="agregarFilaProducto()" style="flex: 1; background: #f8fafc; border: 2px dashed #cbd5e1; color: #64748b;">
+                    + Agregar Comida
+                </button>
+                <button type="button" class="btn btn-azul" onclick="agregarFilaBebida()" style="flex: 1; background: #fff9f0; border: 2px dashed #ff9f00; color: #e68a00;">
+                    + Agregar Bebida
+                </button>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="txt_numero_orden">Número de Orden</label>
-            <input type="number" id="txt_numero_orden" name="txt_numero_orden" value="{{ pedido.numero_orden }}"
-                required {% if not es_admin %} disabled {% endif %}>
+        <!-- Total y Acciones -->
+        <div class="total-banner">
+            <div>
+                <span style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: #aaa;">Total a Pagar</span>
+                <h2 id="valor-total-display">${{ pedido.valor }}</h2>
+                <p style="font-size: 0.75rem; color: #888; margin-top: 5px;">Total de productos: <span id="span-total-items">0</span></p>
+            </div>
+            <div>
+                <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar" style="padding: 12px 25px;">Cancelar</a>
+                <button type="submit" class="btn btn-guardar" style="padding: 12px 40px; font-size: 1rem; box-shadow: 0 4px 15px var(--primary-glow);">
+                    Guardar Cambios
+                </button>
+            </div>
+            <input type="hidden" id="txt_valor" name="txt_valor" value="{{ pedido.valor }}">
         </div>
-
-        <div class="form-group">
-            <label for="txt_valor">Valor Total</label>
-            <input type="number" id="txt_valor" name="txt_valor" value="{{ pedido.valor }}" min="0" required
-            {% if not es_admin %} disabled {% endif %}>
-        </div>
-
-        <div class="form-group">
-            <label for="txt_metodo_pago">Método de Pago</label>
-            <select id="txt_metodo_pago" name="txt_metodo_pago" required {% if not es_admin %} disabled {% endif %}>
-                <option value="Efectivo" {% if pedido.metodo_pago == 'Efectivo' %}selected{% endif %}>Efectivo</option>
-                <option value="Tarjeta Débito" {% if pedido.metodo_pago == 'Tarjeta Débito' %}selected{% endif %}>Tarjeta Débito</option>
-                <option value="Tarjeta Crédito" {% if pedido.metodo_pago == 'Tarjeta Crédito' %}selected{% endif %}>Tarjeta Crédito</option>
-                <option value="Nequi" {% if pedido.metodo_pago == 'Nequi' %}selected{% endif %}>Nequi</option>
-                <option value="Daviplata" {% if pedido.metodo_pago == 'Daviplata' %}selected{% endif %}>Daviplata</option>
-                <option value="PSE" {% if pedido.metodo_pago == 'PSE' %}selected{% endif %}>PSE</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="txt_estado">Estado</label>
-            <select id="txt_estado" name="txt_estado" {% if not es_admin %} disabled {% endif %}>
-                <option value="1" {% if pedido.estado %}selected{% endif %}>Activo</option>
-                <option value="0" {% if not pedido.estado %}selected{% endif %}>Completado</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="txt_cliente">Cliente</label>
-            <select id="txt_cliente" name="txt_cliente" {% if not es_admin %} disabled {% endif %}>
-                <option value="">— Sin cliente —</option>
-                {% for cliente in clientes %}
-                <option value="{{ cliente.id }}" {% if pedido.cliente_id == cliente.id %}selected{% endif %}>
-                    {{ cliente }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="txt_cajero">Cajero</label>
-            <select id="txt_cajero" name="txt_cajero" {% if not es_admin %} disabled {% endif %}>
-                <option value="">— Sin cajero —</option>
-                {% for cajero in cajeros %}
-                <option value="{{ cajero.pk }}" {% if pedido.cajero_id == cajero.pk %}selected{% endif %}>
-                    {{ cajero }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="txt_reserva">Reserva (opcional)</label>
-            <select id="txt_reserva" name="txt_reserva" {% if not es_admin %} disabled {% endif %}>
-                <option value="">— Sin reserva —</option>
-                {% for reserva in reservas %}
-                <option value="{{ reserva.id }}" {% if pedido.reserva_id == reserva.id %}selected{% endif %}>
-                    {{ reserva }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        {% if es_admin %}
-            <button type="submit" class="btn btn-guardar">Actualizar</button>
-        {% endif %}
-        
-        <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar">
-            {% if es_admin %}Cancelar{% else %}Volver{% endif %}
-        </a>
     </form>
 </div>
+
+<!-- Template Oculto para Productos -->
+<div id="select-productos-html" style="display: none;">
+    <select name="producto_id[]" class="form-control select-producto" required onchange="actualizarComposicion_y_Precio(this)">
+        <option value="">— Seleccione Producto —</option>
+        {% for producto in productos %}
+            {% if producto.categoria != 'Bebidas' %}
+            <option value="{{ producto.id }}" data-precio="{{ producto.precio }}" data-composicion='{{ producto.composicion_json|safe }}'>
+                {{ producto.nombre_producto }}
+            </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+</div>
+
+<!-- Template Oculto para Bebidas -->
+<div id="select-bebidas-html" style="display: none;">
+    <select name="producto_id[]" class="form-control select-producto" required onchange="actualizarComposicion_y_Precio(this)">
+        <option value="">— Seleccione Bebida —</option>
+        {% for bebida in bebidas %}
+        <option value="{{ bebida.id }}" data-precio="{{ bebida.precio }}" data-composicion='[]'>
+            {{ bebida.nombre_producto }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+<script>
+    let contadorFilas = 0;
+    const detallesIniciales = {{ detalles_json|safe }};
+    const formatter = new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    });
+
+    function sincronizarClienteId(valor) {
+        const datalist = document.getElementById('clientes_list');
+        const hiddenInput = document.getElementById('txt_cliente_id');
+        const opciones = datalist.options;
+        let clienteId = null;
+
+        for (let i = 0; i < opciones.length; i++) {
+            if (opciones[i].value === valor) {
+                clienteId = opciones[i].getAttribute('data-id');
+                break;
+            }
+        }
+
+        hiddenInput.value = clienteId || "";
+        // Nota: El filtrado de reservas en edición ya viene pre-renderizado, pero si cambia el cliente, podríamos querer filtrarlas
+        filtrarReservas(clienteId);
+    }
+
+    function filtrarReservas(clienteId) {
+        const selectReserva = document.getElementById('txt_reserva');
+        const opciones = selectReserva.options;
+        if (!clienteId) {
+            for (let i = 1; i < opciones.length; i++) opciones[i].style.display = 'none';
+            return;
+        }
+        for (let i = 1; i < opciones.length; i++) {
+            const idC = opciones[i].getAttribute('data-cliente');
+            opciones[i].style.display = (idC === clienteId) ? 'block' : 'none';
+        }
+    }
+
+    function agregarFilaProducto(datos = null) {
+        const tbody = document.getElementById('body-productos');
+        const nuevaFila = document.createElement('tr');
+        nuevaFila.className = 'fila-producto';
+        nuevaFila.setAttribute('data-indice', contadorFilas);
+        nuevaFila.setAttribute('data-tipo', datos && datos.tipo === 'bebida' ? 'bebida' : 'producto');
+        
+        if (nuevaFila.getAttribute('data-tipo') === 'bebida') nuevaFila.classList.add('fila-bebida');
+
+        nuevaFila.innerHTML = `
+            <td>${document.getElementById(datos && datos.tipo === 'bebida' ? 'select-bebidas-html' : 'select-productos-html').innerHTML}</td>
+            <td>
+                <select name="producto_cantidad[]" class="form-control select-cantidad" onchange="calcularTotal()">
+                    ${generarOpcionesCantidad(datos ? datos.cantidad : 1)}
+                </select>
+            </td>
+            <td class="subtotal-fila" style="font-size: 1.1rem;">$0</td>
+            <td>
+                <button type="button" class="btn btn-detalles btn-sm" onclick="toggleDetalles(this)" ${datos && datos.tipo === 'bebida' ? 'style="display:none;"' : ''}>
+                    ⚙️ Personalizar
+                </button>
+                <div class="detalles-producto" style="display: none; margin-top: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div class="lista-exclusiones"></div>
+                    <div style="margin-top: 12px;">
+                        <label style="font-size: 0.85rem; font-weight: 600; color: #64748b;">NOTAS:</label>
+                        <textarea name="producto_notas_${contadorFilas}" class="form-control" rows="2">${datos ? (datos.notas || '') : ''}</textarea>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarFilaProducto(this)" title="Borrar">✕</button>
+            </td>
+        `;
+
+        tbody.appendChild(nuevaFila);
+
+        if (datos) {
+            const select = nuevaFila.querySelector('.select-producto');
+            select.value = datos.producto_id;
+            actualizarComposicion_y_Precio(select, datos.excluidas_ids);
+        }
+
+        contadorFilas++;
+        calcularTotal();
+    }
+
+    function agregarFilaBebida() {
+        agregarFilaProducto({tipo: 'bebida'});
+    }
+
+    function generarOpcionesCantidad(seleccionada) {
+        let html = "";
+        const opciones = [1,2,3,4,5,6,7,8,9,10,15,20];
+        opciones.forEach(v => {
+            html += `<option value="${v}" ${v == seleccionada ? 'selected' : ''}>${v}</option>`;
+        });
+        return html;
+    }
+
+    function eliminarFilaProducto(boton) {
+        const tbody = document.getElementById('body-productos');
+        if (tbody.rows.length > 1) {
+            boton.closest('tr').remove();
+            calcularTotal();
+        } else {
+            alert("El pedido debe tener al menos un item.");
+        }
+    }
+
+    function toggleDetalles(boton) {
+        const div = boton.nextElementSibling;
+        div.style.display = (div.style.display === "none") ? "block" : "none";
+        boton.innerText = (div.style.display === "none") ? "⚙️ Personalizar" : "🔼 Cerrar";
+    }
+
+    function actualizarComposicion_y_Precio(selectElement, excluidasPreseleccionadas = []) {
+        const fila = selectElement.closest('tr');
+        const opcion = selectElement.options[selectElement.selectedIndex];
+        const listaExcl = fila.querySelector('.lista-exclusiones');
+        const indice = fila.getAttribute('data-indice');
+
+        if (opcion.value && listaExcl) {
+            const composicion = JSON.parse(opcion.getAttribute('data-composicion') || "[]");
+            let html = "";
+            composicion.forEach(mp => {
+                const checked = excluidasPreseleccionadas.includes(mp.id) ? 'checked' : '';
+                html += `
+                    <label class="exclusion-item">
+                        <input type="checkbox" name="producto_exclusiones_${indice}[]" value="${mp.id}" ${checked}>
+                        <span>Sin ${mp.nombre}</span>
+                    </label>
+                `;
+            });
+            listaExcl.innerHTML = html || "<p style='font-size: 0.8rem; color: #94a3b8;'>Sin ingredientes modificables.</p>";
+        } else if(listaExcl) {
+            listaExcl.innerHTML = "";
+        }
+        
+        calcularTotal();
+    }
+
+    function calcularTotal() {
+        let totalGeneral = 0;
+        let totalItems = 0;
+        const filas = document.querySelectorAll('.fila-producto');
+
+        filas.forEach(fila => {
+            const select = fila.querySelector('.select-producto');
+            const selectCant = fila.querySelector('.select-cantidad');
+            const subtotalFila = fila.querySelector('.subtotal-fila');
+
+            const seleccionada = select.options[select.selectedIndex];
+            if (seleccionada && seleccionada.value) {
+                const precio = parseFloat(seleccionada.getAttribute('data-precio') || 0);
+                const cantidad = parseInt(selectCant.value || 0);
+                const totalFila = precio * cantidad;
+                
+                subtotalFila.innerText = formatter.format(totalFila);
+                totalGeneral += totalFila;
+                totalItems += cantidad;
+            } else {
+                subtotalFila.innerText = "$0";
+            }
+        });
+
+        const displayTotal = document.getElementById('valor-total-display');
+        displayTotal.innerText = formatter.format(totalGeneral);
+        document.getElementById('txt_valor').value = totalGeneral;
+        document.getElementById('span-total-items').innerText = totalItems;
+    }
+
+    window.onload = () => {
+        if (detallesIniciales.length > 0) {
+            detallesIniciales.forEach(d => agregarFilaProducto(d));
+        } else {
+            agregarFilaProducto();
+        }
+        // Inicializar filtro de reservas para el cliente actual
+        filtrarReservas(document.getElementById('txt_cliente_id').value);
+    };
+</script>
 {% endblock %}

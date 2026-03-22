@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Factura — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Factura</h1>
+
+    <form method="POST" action="{% url 'registrar_factura' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="txt_id">No° de la Factura</label>
+            <input type="number" id="txt_id" name="txt_id" value="{{ prox_id }}" readonly style="background-color: #f8fafc; font-weight: bold; color: var(--primary);">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_valor_total">Valor Total</label>
+            <input type="number" id="txt_valor_total" name="txt_valor_total" 
+                value="{{ pedido_seleccionado.valor|default:0 }}" 
+                placeholder="0" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_iva">IVA (%)</label>
+            <input type="number" step="0.01" id="txt_iva" name="txt_iva" value="8" readonly class="readonly-field">
+            <small style="color: #64748b;">IVA de consumo fijado al 8%.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_descripcion">Descripción</label>
+            <textarea id="txt_descripcion" name="txt_descripcion" rows="3"
+                placeholder="Descripción opcional">{% if descripcion_automatica %}{{ descripcion_automatica }}{% else %}{% if pedido_seleccionado %}Factura del Pedido #{{ pedido_seleccionado.id }}{% endif %}{% endif %}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_pedido">Fecha de Pedido</label>
+            <select id="txt_pedido" name="txt_pedido" required>
+                <option value="">— Seleccione fecha —</option>
+                {% for pedido in pedidos %}
+                <option value="{{ pedido.id }}" {% if pedido.id == pedido_seleccionado.id %}selected{% endif %}>
+                    {{ pedido.fecha }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <a href="{% url 'listar_facturas' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

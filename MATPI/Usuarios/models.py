@@ -89,3 +89,15 @@ class Cajero(models.Model):
 
     class Meta:
         db_table = 'usuarios_cajero'
+
+
+class DashboardConfig(models.Model):
+    """Configuración de metas y otros parámetros del Dashboard."""
+    meta_reservas = models.PositiveIntegerField('Meta de Reservas', default=50)
+    meta_pedidos = models.PositiveIntegerField('Meta de Pedidos', default=200)
+
+    class Meta:
+        db_table = 'DashboardConfig'
+
+    def __str__(self):
+        return "Configuración del Dashboard"

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Suministro — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Suministro de Materia Prima</h1>
+    <p style="color: #666; margin-bottom: 20px;">Proveedor: <strong>{{ proveedor.nombre_proveedor }}</strong></p>
+
+    <form action="{% url 'registrar_suministro_materia' %}" method="POST" class="custom-form">
+        {% csrf_token %}
+        <input type="hidden" name="txt_proveedor_id" value="{{ proveedor.id }}">
+
+        <div class="form-group">
+            <label for="txt_materia_id">Materia Prima</label>
+            <select name="txt_materia_id" id="txt_materia_id" required>
+                <option value="" disabled selected>Seleccione la materia prima</option>
+                {% for materia in materias_primas %}
+                <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} ( {{ materia.stock_total|floatformat:0 }} {{ materia.unidad_medida }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label for="txt_cantidad">Cantidad Recibida</label>
+                <input type="number" step="0.01" name="txt_cantidad" id="txt_cantidad" placeholder="" required>
+            </div>
+
+            <div class="form-group">
+                <label for="txt_precio">Precio Unitario ($)</label>
+                <input type="number" step="0.01" name="txt_precio" id="txt_precio" placeholder="Ej: 1500.00">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha">Fecha de Suministro</label>
+            <input type="datetime-local" name="txt_fecha" id="txt_fecha" value="{{ fecha_actual|date:'Y-m-d\TH:i' }}">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_vencimiento">Fecha de Vencimiento</label>
+            <input type="date" name="txt_vencimiento" id="txt_vencimiento">
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn btn-guardar">Registrar Entrada</button>
+            <a href="{% url 'listar_proveedores' %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

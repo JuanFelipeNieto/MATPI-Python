@@ -16,7 +16,10 @@
         </div>
         
         {% if es_admin %}
-        <a href="{% url 'mostrar_registro_producto' %}" class="btn btn-guardar">+ Nuevo Producto</a>
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'mostrar_registro_comida' %}" class="btn btn-guardar">+ Nueva Comida</a>
+            <a href="{% url 'mostrar_registro_bebida' %}" class="btn btn-azul">+ Nueva Bebida</a>
+        </div>
         {% endif %}
     </div>
 
@@ -24,7 +27,7 @@
         <table class="custom-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Imagen</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
                     <th>Cantidad en Stock</th>
@@ -38,7 +41,13 @@
             <tbody>
                 {% for producto in productos %}
                 <tr>
-                    <td>{{ producto.id }}</td>
+                    <td>
+                        {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre_producto }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                            <div style="width: 50px; height: 50px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">Sin foto</div>
+                        {% endif %}
+                    </td>
                     <td>{{ producto.nombre_producto }}</td>
                     <td>{{ producto.categoria|default:"—" }}</td>
                     <td>{{ producto.cantidad }}</td>

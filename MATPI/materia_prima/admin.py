@@ -3,7 +3,7 @@ from .models import MateriaPrima, DetalleProductoMateriaP
 
 @admin.register(MateriaPrima)
 class MateriaPrimaAdmin(admin.ModelAdmin):
-    list_display  = ('id', 'nombre_materia_prima', 'unidad_medida', 'cantidad', 'fecha_vencimiento')
+    list_display  = ('id', 'nombre_materia_prima', 'unidad_medida')
     search_fields = ('nombre_materia_prima',)
     list_filter   = ('unidad_medida',)
 

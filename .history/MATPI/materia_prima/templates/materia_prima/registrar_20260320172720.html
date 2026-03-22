@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Materia Prima — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Materia Prima</h1>
+
+    <form method="POST" action="{% url 'registrar_materia_prima' %}">
+        {% csrf_token %}
+
+
+
+        <div class="form-group">
+            <label for="txt_nombre">Nombre</label>
+            <input type="text" id="txt_nombre" name="txt_nombre" placeholder="Nombre de la materia prima" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_unidad">Unidad de Medida</label>
+            <select id="txt_unidad" name="txt_unidad" required>
+                <option value="" disabled selected>Seleccione una unidad</option>
+                <option value="kg">Kilogramo (kg)</option>
+                <option value="g">Gramo (g)</option>
+                <option value="L">Litro (L)</option>
+                <option value="ml">Mililitro (ml)</option>
+                <option value="lb">Libra (lb)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_cantidad_unidad">Equivalencia</label>
+            <input type="number" id="txt_cantidad_unidad" name="txt_cantidad_unidad" step="0.01" value="1.00" required>
+            <small>Ej: Si 1 caja tiene 24 unidades, ingrese 24. Si es unidad individual, ingrese 1.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_tipo">Tipo de Materia Prima</label>
+            <select id="txt_tipo" name="txt_tipo" required>
+                <option value="Comida" selected>Para Comida</option>
+                <option value="Bebida">Bebida</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_cantidad">Cantidad</label>
+            <input type="number" id="txt_cantidad" name="txt_cantidad" value="0">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_fecha_ingreso">Fecha de Ingreso</label>
+            <input type="datetime-local" id="txt_fecha_ingreso" name="txt_fecha_ingreso" value="{{ fecha_actual|date:'Y-m-d\TH:i' }}">
+        </div>
+
+
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <a href="{% url 'listar_materia_prima' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

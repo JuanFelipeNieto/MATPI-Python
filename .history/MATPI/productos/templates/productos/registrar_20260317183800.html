@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Producto — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Producto</h1>
+
+    <form method="POST" action="{% url 'registrar_producto' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+
+
+        <div class="form-group">
+            <label for="txt_nombre">Nombre del Producto</label>
+            <input type="text" id="txt_nombre" name="txt_nombre" placeholder="Nombre del producto" required>
+        </div>
+
+        <div class="form-group">
+            <label for="sel_materia">C</label>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <select id="sel_materia" class="form-control" style="flex-grow: 1;">
+                    <option value="">— Seleccione Materia Prima —</option>
+                    {% for materia in materias_primas %}
+                        <option value="{{ materia.nombre_materia_prima }}">{{ materia.nombre_materia_prima }} ({{ materia.unidad_medida }})</option>
+                    {% endfor %}
+                </select>
+                <button type="button" id="btn_add_materia" class="btn btn-consultar" style="width: auto;">Añadir</button>
+            </div>
+            
+            <ul id="lista_materias" style="list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px;">
+                <!-- Aquí se añadirán las materias seleccionadas -->
+            </ul>
+            
+            <input type="hidden" id="txt_descripcion" name="txt_descripcion" value="">
+            <small>Selecciona una materia prima y haz clic en "Añadir". Puedes eliminar haciendo clic en la "X".</small>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const selMateria = document.getElementById('sel_materia');
+                const btnAdd = document.getElementById('btn_add_materia');
+                const listaMaterias = document.getElementById('lista_materias');
+                const hiddenDesc = document.getElementById('txt_descripcion');
+                
+                let materiasSeleccionadas = [];
+
+                function actualizarHidden() {
+                    hiddenDesc.value = materiasSeleccionadas.join(', ');
+                }
+
+                function renderLista() {
+                    listaMaterias.innerHTML = '';
+                    materiasSeleccionadas.forEach((materia, index) => {
+                        const li = document.createElement('li');
+                        li.style.backgroundColor = '#f0f0f0';
+                        li.style.padding = '5px 12px';
+                        li.style.borderRadius = '20px';
+                        li.style.display = 'flex';
+                        li.style.alignItems = 'center';
+                        li.style.gap = '8px';
+                        li.style.fontSize = '0.9em';
+                        li.style.border = '1px solid #ddd';
+
+                        li.innerHTML = `
+                            <span>${materia}</span>
+                            <span style="cursor: pointer; color: #ff4d4d; font-weight: bold;" onclick="eliminarMateria(${index})">×</span>
+                        `;
+                        listaMaterias.appendChild(li);
+                    });
+                }
+
+                window.eliminarMateria = function(index) {
+                    materiasSeleccionadas.splice(index, 1);
+                    renderLista();
+                    actualizarHidden();
+                };
+
+                btnAdd.addEventListener('click', function() {
+                    const valor = selMateria.value;
+                    if (valor && !materiasSeleccionadas.includes(valor)) {
+                        materiasSeleccionadas.push(valor);
+                        renderLista();
+                        actualizarHidden();
+                        selMateria.value = '';
+                    } else if (materiasSeleccionadas.includes(valor)) {
+                        alert('Esta materia ya ha sido añadida.');
+                    }
+                });
+            });
+        </script>
+
+        <div class="form-group">
+            <label for="txt_cantidad">Cantidad en Stock</label>
+            <input type="number" id="txt_cantidad" name="txt_cantidad" placeholder="0" value="0">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_precio">Precio</label>
+            <input type="number" id="txt_precio" name="txt_precio" placeholder="Ingrese precio" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_categoria">Categoría</label>
+            <select id="txt_categoria" name="txt_categoria">
+                <option value="">— Seleccione —</option>
+                <option value="Hamburguesas">Hamburguesas</option>
+                <option value="Perros Calientes">Perros Calientes</option>
+                <option value="Entradas y Snacks">Entradas y Snacks</option>
+                <option value="Combos">Combos</option>
+                <option value="Bebidas">Bebidas</option>
+                <option value="Postres">Postres</option>
+                <option value="Adiciones">Adiciones</option>
+                <option value="Salsas">Salsas</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_imagen">Imagen del Producto</label>
+            <input type="file" id="txt_imagen" name="txt_imagen" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <a href="{% url 'listar_productos' %}" class="btn btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

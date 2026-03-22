@@ -4,6 +4,9 @@ from django.db import transaction, models
 from django.utils import timezone
 from .models import MateriaPrima, Lote
 from usuarios.models import Administrador 
+import openpyxl
+from datetime import datetime
+import re
 
 # Función auxiliar para validar si el ID en sesión es Administrador
 def check_admin(request):
@@ -58,15 +61,18 @@ def registrar_materia_prima(request):
     if request.method == 'POST':
         nombre = request.POST.get('txt_nombre')
         unidad = request.POST.get('txt_unidad')
-        cantidad = float(request.POST.get('txt_cantidad', 0))
+        cantidad_unidad = int(request.POST.get('txt_cantidad_unidad', 1))
+        tipo = request.POST.get('txt_tipo', 'Comida')
+        cantidad = int(request.POST.get('txt_cantidad', 0))
         f_ingreso = request.POST.get('txt_fecha_ingreso')
-        f_vencimiento = request.POST.get('txt_fecha_vencimiento')
 
         try:
             with transaction.atomic():
                 materia = MateriaPrima.objects.create(
                     nombre_materia_prima=nombre,
                     unidad_medida=unidad,
+                    cantidad_por_unidad=cantidad_unidad,
+                    tipo=tipo,
                 )
                 
                 if cantidad > 0:
@@ -75,7 +81,7 @@ def registrar_materia_prima(request):
                         cantidad_inicial=cantidad,
                         cantidad_actual=cantidad,
                         fecha_ingreso=f_ingreso or timezone.now(),
-                        fecha_vencimiento=f_vencimiento or None
+                        fecha_vencimiento=None
                     )
                 
                 messages.success(request, f"Materia prima '{nombre}' registrada exitosamente.")
@@ -111,6 +117,8 @@ def editar_materia_prima(request):
         
         materia.nombre_materia_prima = request.POST.get('txt_nombre')
         materia.unidad_medida        = request.POST.get('txt_unidad')
+        materia.cantidad_por_unidad  = int(request.POST.get('txt_cantidad_unidad', 1))
+        materia.tipo                 = request.POST.get('txt_tipo', 'Comida')
         materia.save()
         
         messages.success(request, "Información de la materia prima actualizada correctamente.")
@@ -166,7 +174,7 @@ def editar_lote(request):
         id_lote = request.POST.get('txt_id')
         lote = get_object_or_404(Lote, pk=id_lote)
         
-        lote.cantidad_actual = request.POST.get('txt_cantidad')
+        lote.cantidad_actual = int(request.POST.get('txt_cantidad', 0))
         lote.fecha_vencimiento = request.POST.get('txt_fecha_vencimiento') or None
         lote.save()
         
@@ -185,4 +193,135 @@ def eliminar_lote(request, id_lote):
     lote.delete()
     
     messages.success(request, "Lote eliminado correctamente.")
-    return redirect('ver_lotes', id_materia=id_materia)
+    return redirect('ver_lotes', id_materia=id_materia)
+
+
+# --- IMPORTACIÓN MASIVA DESDE EXCEL ---
+
+def importar_materia_prima_excel(request):
+    if not check_admin(request):
+        messages.error(request, "No tienes permisos para realizar esta acción.")
+        return redirect('listar_materia_prima')
+
+    if request.method == 'POST' and request.FILES.get('archivo_excel'):
+        archivo = request.FILES['archivo_excel']
+        try:
+            wb = openpyxl.load_workbook(archivo)
+            sheet = wb.active
+            
+            creados = 0
+            errores = []
+            
+            # Suponiendo que la primera fila es encabezado
+            # Columnas: A:Nombre, B:Unidad, C:Cant x Unidad, D:Tipo
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                nombre, unidad, cant_unidad, tipo = row[:4]
+                if not nombre: continue
+                
+                try:
+                    MateriaPrima.objects.create(
+                        nombre_materia_prima=nombre,
+                        unidad_medida=unidad or 'und',
+                        cantidad_por_unidad=int(cant_unidad or 1),
+                        tipo=tipo or 'Comida'
+                    )
+                    creados += 1
+                except Exception as e:
+                    errores.append(f"Error en fila {nombre}: {str(e)}")
+            
+            if creados > 0:
+                messages.success(request, f"Se importaron {creados} materias primas correctamente.")
+            if errores:
+                messages.warning(request, f"Hubo errores en {len(errores)} filas.")
+                
+        except Exception as e:
+            messages.error(request, f"Error al procesar el archivo: {str(e)}")
+            
+        return redirect('listar_materia_prima')
+        
+    return render(request, 'materia_prima/importar_materia_prima.html')
+
+
+def importar_lotes_excel(request):
+    if not check_admin(request):
+        messages.error(request, "No tienes permisos para realizar esta acción.")
+        return redirect('listar_materia_prima')
+
+    if request.method == 'POST' and request.FILES.get('archivo_excel'):
+        archivo = request.FILES['archivo_excel']
+        try:
+            wb = openpyxl.load_workbook(archivo)
+            sheet = wb.active
+            
+            creados = 0
+            errores = []
+            
+            # Columnas: A:Nombre Materia Prima, B:Cantidad, C:Fecha Vencimiento (opcional), D:Precio (opcional)
+            for row_idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+                nombre_completo, cantidad, f_vencimiento, precio = row[:4]
+                if not nombre_completo or not cantidad: continue
+                
+                nombre_completo = str(nombre_completo).strip()
+                materia = None
+                
+                try:
+                    # 1. Intentar coincidencia exacta con el nombre completo
+                    materia = MateriaPrima.objects.filter(nombre_materia_prima__iexact=nombre_completo).first()
+                    
+                    if not materia:
+                        # 2. Intentar parsear el formato "Nombre (Equivalencia Unidad)"
+                        # Ejemplo: "Carne de hamburguesa (150 gr)"
+                        match = re.match(r"^(.*?)\s*\(([\d.,]+)\s+(.*)\)$", nombre_completo)
+                        
+                        if match:
+                            nombre_base = match.group(1).strip()
+                            equiv_str = match.group(2).replace(',', '.')
+                            unidad_str = match.group(3).strip()
+                            
+                            try:
+                                equiv_int = int(float(equiv_str))
+                                materia = MateriaPrima.objects.filter(
+                                    nombre_materia_prima__iexact=nombre_base,
+                                    cantidad_por_unidad=equiv_int,
+                                    unidad_medida__iexact=unidad_str
+                                ).first()
+                            except (ValueError, TypeError):
+                                pass
+                    
+                    if not materia:
+                        errores.append(f"Fila {row_idx}: Materia prima '{nombre_completo}' no encontrada.")
+                        continue
+                    
+                    # Validar fecha si viene como string o datetime
+                    if isinstance(f_vencimiento, str):
+                        try:
+                            f_vencimiento = datetime.strptime(f_vencimiento, '%Y-%m-%d').date()
+                        except:
+                            f_vencimiento = None
+                    
+                    Lote.objects.create(
+                        materia_prima=materia,
+                        cantidad_inicial=int(cantidad),
+                        cantidad_actual=int(cantidad),
+                        fecha_ingreso=timezone.now(),
+                        fecha_vencimiento=f_vencimiento,
+                        precio_unidad=precio
+                    )
+                    creados += 1
+                except Exception as e:
+                    errores.append(f"Error en lote para {nombre_completo}: {str(e)}")
+            
+            if creados > 0:
+                messages.success(request, f"Se importaron {creados} lotes correctamente.")
+            if errores:
+                for error in errores[:5]: # Mostrar los primeros 5 errores
+                    messages.warning(request, error)
+                if len(errores) > 5:
+                    messages.warning(request, f"...y {len(errores)-5} errores más.")
+                
+        except Exception as e:
+            messages.error(request, f"Error al procesar el archivo: {str(e)}")
+            
+        return redirect('listar_materia_prima')
+        
+    return render(request, 'materia_prima/importar_lotes.html')

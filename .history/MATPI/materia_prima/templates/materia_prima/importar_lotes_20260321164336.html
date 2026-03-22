@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Importar Lotes — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Importar Lotes desde Excel</h1>
+    <p>Suba un archivo Excel (.xlsx) con los datos de los nuevos lotes.</p>
+
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid var(--primary);">
+        <h3 style="margin-top: 0;">Formato del archivo:</h3>
+        <ul>
+            <li><strong>Primera columna:</strong> Nombre de Materia Prima (Exacto)</li>
+            <li><strong>Segunda columna:</strong> Cantidad Recibida</li>
+            <li><strong>Tercera columna:</strong> Fecha Vencimiento</li>
+            <li><strong>Cuarta columna:</strong> Precio por Unidad (Opcional)</li>
+        </ul>
+        <p><small>* La primera fila se considera encabezado y será ignorada. Las materias primas deben existir previamente.</small></p>
+    </div>
+
+    <div class="alert alert-warning" style="margin-bottom: 25px;">
+        <i class="fas fa-exclamation-triangle"></i> <strong>IMPORTANTE:</strong> Asegúrese de que las materias primas ya existan en el sistema antes de cargar sus lotes.
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="archivo_excel">Seleccionar Archivo Excel</label>
+            <input type="file" id="archivo_excel" name="archivo_excel" accept=".xlsx" required>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-guardar">Importar Lotes</button>
+            <a href="{% url 'listar_materia_prima' %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

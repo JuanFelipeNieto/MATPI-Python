@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Clientes</h1>
+
+    <!-- Buscador + botón nuevo -->
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_clientes' %}">
+                <input type="text" name="buscar" placeholder="Buscar por docu o nombre" value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        <a href="{% url 'mostrar_registro_cliente' %}" class="btn btn-guardar">+ Nuevo Cliente</a>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Numero Documento</th>
+                    <th>Nombre Completo</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Localidad</th>
+                    <th>Registrado por</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td>{{ cliente.id }}</td>
+                    <td>{{ cliente.nombre_completo }}</td>
+                    <td>{{ cliente.telefono|default:"—" }}</td>
+                    <td>{{ cliente.direccion|default:"—" }}</td>
+                    <td>{{ cliente.localidad|default:"—" }}</td>
+                    <td>{{ cliente.cajero|default:"—" }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'pre_editar_cliente' cliente.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'eliminar_cliente' cliente.id %}" class="btn-danger"
+                            onclick="return confirm('¿Seguro que deseas eliminar este cliente?')">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center;">No hay clientes registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

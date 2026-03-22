@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedidos — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Pedidos</h1>
+
+    <div class="form-busqueda">
+        <div class="buscador-izq">
+            <form method="GET" action="{% url 'listar_pedidos' %}">
+                <input type="text" name="buscar" placeholder="Número de orden..." value="{{ buscar|default:'' }}">
+                <button type="submit" class="btn btn-guardar">Buscar</button>
+            </form>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            {% if es_admin %}
+            <a href="{% url 'cocina' %}" target="_blank" class="btn btn-negro" style="background: #0d0d0d; color: #ff9f00; border: 1px solid #ff9f00;">📺 Pantalla Cocina</a>
+            {% endif %}
+            <a href="{% url 'pedidos_pendientes' %}" class="btn btn-azul" style="background: #fff9f0; border: 1px solid #ff9f00; color: #e68a00;">🕒 Ver Pedidos en Preparación</a>
+            <a href="{% url 'mostrar_registro_pedido' %}" class="btn btn-guardar">+ Nuevo Pedido</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>N° Orden</th>
+                    <th>Valor</th>
+                    <th>Método Pago</th>
+                    <th>Estado</th>
+                    <th>Prep.</th>
+                    <th>Cliente</th>
+                    <th>Cajero</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                <tr>
+                    <td>{{ pedido.fecha }}</td>
+                    <td>{{ pedido.numero_orden }}</td>
+                    <td>${{ pedido.valor }}</td>
+                    <td>{{ pedido.metodo_pago }}</td>
+                    <td>{% if pedido.estado %}Activo{% else %}Completado{% endif %}</td>
+                    <td>
+                        {% if pedido.estado %}
+                        <span class="tiempo-prep" data-inicio="{{ pedido.fecha.isoformat }}" style="font-weight: bold; color: #d62828;">...</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ pedido.cliente.nombre_completo|default:"—" }}</td>
+                    <td>{{ pedido.cajero|default:"—" }}</td>
+                    <td class="acciones">
+                        <a href="{% url 'detalles_pedido' pedido.id %}" class="btn-editar" style="background-color: #64748b;">Ver</a>
+                        <a href="{% url 'pre_editar_pedido' pedido.id %}" class="btn-editar">Editar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align:center;">No hay pedidos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function actualizarTiemposListar() {
+        const ahora = new Date();
+        document.querySelectorAll('.tiempo-prep').forEach(elemento => {
+            const fechaInicio = new Date(elemento.getAttribute('data-inicio'));
+            const diferencia = ahora - fechaInicio;
+            const minutos = Math.floor(diferencia / 60000);
+            elemento.innerText = `${minutos}m`;
+        });
+    }
+    setInterval(actualizarTiemposListar, 60000);
+    actualizarTiemposListar();
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Factura — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Registrar Factura</h1>
+
+    <form method="POST" action="{% url 'registrar_factura' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="txt_id">N° de Factura</label>
+            <input type="number" id="txt_id" name="txt_id" value="{{ prox_id }}" readonly style="background-color: #f8fafc; font-weight: bold; color: var(--primary);">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_valor_total">Valor Total</label>
+            <input type="number" id="txt_valor_total" name="txt_valor_total" 
+                value="{{ pedido_seleccionado.valor|default:0 }}" 
+                readonly class="readonly-field">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_iva">IVA (%)</label>
+            <input type="number" step="0.01" id="txt_iva" name="txt_iva" value="8" readonly class="readonly-field">
+            <small style="color: #64748b;">IVA de consumo fijado al 8%.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_descripcion">Descripción</label>
+            <textarea id="txt_descripcion" name="txt_descripcion" rows="3"
+                placeholder="Descripción opcional">{% if descripcion_automatica %}{{ descripcion_automatica }}{% else %}{% if pedido_seleccionado %}Factura del Pedido #{{ pedido_seleccionado.id }}{% endif %}{% endif %}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_pedido">Fecha de Pedido</label>
+            {% if pedido_seleccionado %}
+                <input type="hidden" name="txt_pedido" value="{{ pedido_seleccionado.id }}">
+                <select id="txt_pedido_display" class="form-control readonly-field" disabled>
+                    <option selected>Pedido #{{ pedido_seleccionado.id }} ({{ pedido_seleccionado.fecha }})</option>
+                </select>
+            {% else %}
+                <select id="txt_pedido" name="txt_pedido" required onchange="actualizarDesdePedido()">
+                    <option value="">— Seleccione fecha —</option>
+                    {% for pedido in pedidos %}
+                    <option value="{{ pedido.id }}">
+                        Pedido #{{ pedido.id }} ({{ pedido.fecha }})
+                    </option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 30px; display: flex; gap: 10px; align-items: center;">
+            <button type="submit" class="btn btn-guardar">Guardar Factura</button>
+            <a id="btn_editar_pedido" href="#" class="btn btn-azul" style="display: none; padding: 10px 15px; font-size: 0.9rem; white-space: nowrap; justify-content: center; align-items: center;">
+                ✏️ Editar Pedido
+            </a>
+            <a href="{% url 'listar_facturas' %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const pedidosData = {{ pedidos_json|safe }};
+    const pedidoPreSeleccionadoId = "{{ pedido_seleccionado.id|default:'' }}";
+
+    function actualizarDesdePedido() {
+        const select = document.getElementById('txt_pedido') || { value: pedidoPreSeleccionadoId };
+        const inputValor = document.getElementById('txt_valor_total');
+        const btnEditar = document.getElementById('btn_editar_pedido');
+        
+        const pedidoId = select.value;
+        const pedido = pedidosData.find(p => p.id == pedidoId);
+        
+        if (pedido) {
+            inputValor.value = pedido.valor;
+            btnEditar.href = `/pedidos/editar/${pedidoId}/`;
+            btnEditar.style.display = 'inline-flex';
+        } else {
+            inputValor.value = 0;
+            btnEditar.style.display = 'none';
+        }
+    }
+
+    // Inicializar al cargar
+    window.onload = actualizarDesdePedido;
+</script>
+{% endblock %}

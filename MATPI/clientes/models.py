@@ -7,6 +7,8 @@ class Cliente(models.Model):
     id = models.PositiveBigIntegerField('Número de Documento', primary_key=True)
     nombre_completo = models.CharField('Nombre Completo', max_length=40)
     telefono = models.CharField('Teléfono', max_length=14, blank=True, null=True)
+    direccion = models.CharField('Dirección', max_length=100, blank=True, null=True)
+    localidad = models.CharField('Localidad', max_length=50, blank=True, null=True)
     cajero = models.ForeignKey(
         Cajero,
         on_delete=models.SET_NULL,

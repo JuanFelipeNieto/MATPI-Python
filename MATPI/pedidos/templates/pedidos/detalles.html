@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalles del Pedido #{{ pedido.numero_orden }} — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Detalles del Pedido #{{ pedido.numero_orden }}</h1>
+        <span class="badge {% if pedido.estado %}badge-success{% else %}badge-secondary{% endif %}" style="padding: 8px 15px; border-radius: 20px;">
+            {% if pedido.estado %}Activo{% else %}Completado{% endif %}
+        </span>
+    </div>
+
+    <div class="card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 30px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div>
+                <label style="color: #64748b; font-size: 0.85rem; display: block; margin-bottom: 5px;">Fecha y Hora de Registro</label>
+                <p style="font-weight: 600; font-size: 1.1rem;">{{ pedido.fecha|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div>
+                <label style="color: #64748b; font-size: 0.85rem; display: block; margin-bottom: 5px;">Cliente</label>
+                <p style="font-weight: 600; font-size: 1.1rem;">{{ pedido.cliente.nombre_completo|default:"No aplica" }}</p>
+            </div>
+            <div>
+                <label style="color: #64748b; font-size: 0.85rem; display: block; margin-bottom: 5px;">Método de Pago</label>
+                <p style="font-weight: 600; font-size: 1.1rem;">{{ pedido.metodo_pago }}</p>
+            </div>
+            <div>
+                <label style="color: #64748b; font-size: 0.85rem; display: block; margin-bottom: 5px;">Cajero responsable</label>
+                <p style="font-weight: 600; font-size: 1.1rem;">{{ pedido.cajero|default:"Sistema" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <h3>Productos del Pedido</h3>
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Notas / Exclusiones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in pedido.detalles.all %}
+                <tr>
+                    <td>
+                        <div style="font-weight: bold;">{{ detalle.producto.nombre_producto }}</div>
+                        <small style="color: #64748b;">$ {{ detalle.producto.precio_productov }} unit.</small>
+                    </td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td style="font-weight: bold;">$ {{ detalle.obtener_subtotal }}</td>
+                    <td>
+                        {% if detalle.notas %}
+                            <div style="margin-bottom: 5px;">📝 {{ detalle.notas }}</div>
+                        {% endif %}
+                        {% if detalle.materias_excluidas.exists %}
+                            <div style="color: #dc2626; font-size: 0.85rem;">
+                                🚫 Excluye: 
+                                {% for m in detalle.materias_excluidas.all %}
+                                    {{ m.nombre_materia_prima }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if not detalle.notas and not detalle.materias_excluidas.exists %}
+                            <span style="color: #94a3b8; font-style: italic;">Sin observaciones</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f8fafc; font-size: 1.2rem;">
+                    <td colspan="2" style="text-align: right; font-weight: bold;">VALOR TOTAL:</td>
+                    <td colspan="2" style="font-weight: 900; color: var(--primary);">$ {{ pedido.valor }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div style="margin-top: 30px; display: flex; gap: 15px;">
+        <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar" style="flex: 1; text-align: center;">Volver al listado</a>
+        {% if es_admin %}
+            <!-- El usuario puede querer editar desde aquí también si es admin -->
+             <!-- Pero el usuario pidió quitar el botón de editar del listado. 
+                  Sin embargo, como botón de "Corregir" si es admin podría ser útil. 
+                  Pero seré estricto con la petición de "quita el boton de editar". -->
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
