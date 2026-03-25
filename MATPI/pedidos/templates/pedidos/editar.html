@@ -353,18 +353,51 @@
         if (opcion.value && listaExcl) {
             const composicion = JSON.parse(opcion.getAttribute('data-composicion') || "[]");
             let html = "";
+            let agotado = false;
+            let stockLimitado = Infinity;
+
             composicion.forEach(mp => {
                 const checked = excluidasPreseleccionadas.includes(mp.id) ? 'checked' : '';
+                
+                // Nota: mp.stock en edición es el stock actual EN DB. 
+                // No considera lo que el pedido ya tenía "reservado" hasta que se guarde.
+                // Sin embargo, pre_editar_pedido ya recalcula stock_total.
+                
+                const posible = Math.floor(mp.stock / mp.cantidad_usada);
+                if (posible < stockLimitado) stockLimitado = posible;
+                if (mp.stock <= 0) agotado = true;
+
                 html += `
-                    <label class="exclusion-item">
-                        <input type="checkbox" name="producto_exclusiones_${indice}[]" value="${mp.id}" ${checked}>
-                        <span>Sin ${mp.nombre}</span>
+                    <label class="exclusion-item" ${mp.stock <= 0 ? 'style="border-color: #ef4444; background: #fef2f2;"' : ''}>
+                        <input type="checkbox" name="producto_exclusiones_${indice}[]" value="${mp.id}" ${checked} onchange="actualizarComposicion_y_Precio(this.closest('tr').querySelector('.select-producto'), [])">
+                        <span ${mp.stock <= 0 ? 'style="color: #b91c1c; font-weight: bold;"' : ''}>
+                            Sin ${mp.nombre} ${mp.stock <= 0 ? '(¡AGOTADO!)' : ''}
+                        </span>
                     </label>
                 `;
             });
+
+            if (agotado) {
+                const checkedIds = Array.from(fila.querySelectorAll(`.lista-exclusiones input[type="checkbox"]:checked`)).map(cb => parseInt(cb.value));
+                const agotadasNoExcluidas = composicion.filter(mp => mp.stock <= 0 && !checkedIds.includes(mp.id));
+                
+                if (agotadasNoExcluidas.length > 0) {
+                    fila.style.border = "2px solid #ef4444";
+                    fila.style.backgroundColor = "#fff5f5";
+                } else {
+                    fila.style.border = "";
+                    fila.style.backgroundColor = "";
+                }
+            } else {
+                fila.style.border = "";
+                fila.style.backgroundColor = "";
+            }
+
             listaExcl.innerHTML = html || "<p style='font-size: 0.8rem; color: #94a3b8;'>Sin ingredientes modificables.</p>";
         } else if(listaExcl) {
             listaExcl.innerHTML = "";
+            fila.style.border = "";
+            fila.style.backgroundColor = "";
         }
         
         calcularTotal();
@@ -399,6 +432,39 @@
         document.getElementById('txt_valor').value = totalGeneral;
         document.getElementById('span-total-items').innerText = totalItems;
     }
+
+    document.getElementById('order-form').onsubmit = function(e) {
+        const filas = document.querySelectorAll('.fila-producto');
+        let error = false;
+        let msg = "";
+
+        filas.forEach(fila => {
+            const select = fila.querySelector('.select-producto');
+            const opcion = select.options[select.selectedIndex];
+            if (!opcion || !opcion.value) return;
+
+            const composicion = JSON.parse(opcion.getAttribute('data-composicion') || "[]");
+            const cantidad = parseInt(fila.querySelector('.select-cantidad').value);
+            const excluidas = Array.from(fila.querySelectorAll(`.lista-exclusiones input[type="checkbox"]:checked`)).map(cb => parseInt(cb.value));
+
+            composicion.forEach(mp => {
+                if (!excluidas.includes(mp.id)) {
+                    // Nota: En edición, mp.stock es el stock neto actual.
+                    // El backend restará y validará con mayor precisión.
+                    if (mp.stock < (mp.cantidad_usada * cantidad)) {
+                        error = true;
+                        msg += `- ${opcion.text.trim()}: Insumo "${mp.nombre}" insuficiente (Disponible: ${mp.stock})\n`;
+                    }
+                }
+            });
+        });
+
+        if (error) {
+            alert("No se puede guardar el pedido por falta de stock:\n\n" + msg);
+            e.preventDefault();
+            return false;
+        }
+    };
 
     window.onload = () => {
         if (detallesIniciales.length > 0) {

@@ -26,10 +26,21 @@ def recalcular_stock_producto(producto):
     componentes_desc = []
     
     for detalle in detalles:
-        # Cálculo de stock
+        # Cálculo de stock en medida base total
         stock_mp = detalle.materia_prima.stock_total
-        if detalle.cantidad_usada > 0:
-            posible = math.floor(stock_mp / detalle.cantidad_usada)
+        equivalencia = detalle.materia_prima.cantidad_por_unidad
+        stock_base = stock_mp * equivalencia
+        
+        # La cantidad usada ahora siempre viene en medida base desde el frontend
+        cantidad_base = detalle.cantidad_usada
+        
+        # Retrocompatibilidad con registros antiguos donde unidad era 'und' (seleccionado por el usuario) 
+        # y la materia prima no era 'und' propiamente.
+        if detalle.unidad_medida == 'und' and detalle.materia_prima.unidad_medida != 'und':
+            cantidad_base = detalle.cantidad_usada * equivalencia
+        
+        if cantidad_base > 0:
+            posible = math.floor(stock_base / cantidad_base)
             cantidades_posibles.append(posible)
         else:
             cantidades_posibles.append(0)
@@ -120,16 +131,19 @@ def registrar_producto(request):
             imagen=request.FILES.get('txt_imagen'),
         )
 
-        # 2. Guardar composición (materias primas y cantidades)
+        # 2. Guardar composición (materias primas, cantidades y unidades)
         materias_ids = request.POST.getlist('materia_id[]')
         materias_cantidades = request.POST.getlist('materia_cantidad[]')
+        materias_unidades = request.POST.getlist('materia_unidad[]')
 
-        for m_id, m_cant in zip(materias_ids, materias_cantidades):
+        for m_id, m_cant, m_uni in zip(materias_ids, materias_cantidades, materias_unidades):
             if m_id and m_cant:
+                from decimal import Decimal
                 DetalleProductoMateriaP.objects.create(
                     producto=producto,
                     materia_prima_id=m_id,
-                    cantidad_usada=int(m_cant)
+                    cantidad_usada=Decimal(m_cant),
+                    unidad_medida=m_uni
                 )
 
         # 3. Calcular stock automático
@@ -184,13 +198,16 @@ def editar_producto(request):
         
         materias_ids = request.POST.getlist('materia_id[]')
         materias_cantidades = request.POST.getlist('materia_cantidad[]')
+        materias_unidades = request.POST.getlist('materia_unidad[]')
 
-        for m_id, m_cant in zip(materias_ids, materias_cantidades):
+        for m_id, m_cant, m_uni in zip(materias_ids, materias_cantidades, materias_unidades):
             if m_id and m_cant:
+                from decimal import Decimal
                 DetalleProductoMateriaP.objects.create(
                     producto=producto,
                     materia_prima_id=m_id,
-                    cantidad_usada=m_cant
+                    cantidad_usada=Decimal(m_cant),
+                    unidad_medida=m_uni
                 )
 
         # Recalcular stock

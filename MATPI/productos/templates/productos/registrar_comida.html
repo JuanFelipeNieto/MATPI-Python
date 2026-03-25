@@ -18,18 +18,34 @@
             <label>Ingredientes (Composición)</label>
             <div class="table-container">
                 <table class="table" id="tabla-composicion">
+                    <thead>
+                        <tr>
+                            <th>Materia Prima</th>
+                            <th>Cantidad Base (Equivalencia)</th>
+                            <th>Unidad Medida</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
                     <tbody id="body-composicion">
                         <tr class="fila-materia">
                             <td>
-                                <select name="materia_id[]" class="form-control" required>
-                                    <option value="">— Seleccione Materia Prima —</option>
+                                <select name="materia_id[]" class="form-control select-materia" required onchange="actualizarEquivalencia(this)">
+                                    <option value="" data-equiv="" data-unidad="">— Seleccione Materia Prima —</option>
                                     {% for materia in materias_primas %}
-                                        <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} ({{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }})</option>
+                                        <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }}</option>
                                     {% endfor %}
                                 </select>
                             </td>
                             <td>
-                                <input type="number" name="materia_cantidad[]" class="form-control" value="1" min="1" required title="Cantidad de esta materia prima usada en el producto">
+                                <div class="input-group" style="display: flex; gap: 5px;">
+                                    <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad">-</button>
+                                    <input type="number" name="materia_cantidad[]" class="form-control input-equiv" value="" min="0.01" step="0.01" required oninput="actualizarUnidades(this)" placeholder="0">
+                                    <button type="button" class="btn btn-outline-secondary btn-sumar" onclick="sumarUnidad(this)" title="Sumar 1 unidad">+</button>
+                                </div>
+                                <small class="msg-unidades text-muted" style="display: block; margin-top: 5px;"></small>
+                            </td>
+                            <td>
+                                <input type="text" name="materia_unidad[]" class="form-control input-unidad-texto" readonly placeholder="-" style="background-color: #e9ecef;" title="Unidad de medida predeterminada">
                             </td>
                             <td>
                                 <button type="button" class="btn btn-cancelar btn-sm" onclick="eliminarFila(this)">Eliminar</button>
@@ -76,9 +92,15 @@
         const filas = tbody.getElementsByClassName('fila-materia');
         const nuevaFila = filas[0].cloneNode(true);
         const select = nuevaFila.querySelector('select');
-        const input = nuevaFila.querySelector('input');
+        const inputEquiv = nuevaFila.querySelector('.input-equiv');
+        const inputUnidad = nuevaFila.querySelector('.input-unidad-texto');
+        const msgUnidades = nuevaFila.querySelector('.msg-unidades');
+        
         if(select) select.value = "";
-        if(input) input.value = "1";
+        if(inputEquiv) inputEquiv.value = "";
+        if(inputUnidad) inputUnidad.value = "-";
+        if(msgUnidades) msgUnidades.textContent = "";
+        
         tbody.appendChild(nuevaFila);
     }
     function eliminarFila(boton) {
@@ -87,6 +109,75 @@
             boton.closest('tr').remove();
         } else {
             alert("La comida debe tener al menos un ingrediente.");
+        }
+    }
+    
+    function actualizarEquivalencia(selectObj) {
+        const tr = selectObj.closest('tr');
+        const opcion = selectObj.options[selectObj.selectedIndex];
+        
+        const equiv = parseFloat(opcion.getAttribute('data-equiv')) || 0;
+        const unidad = opcion.getAttribute('data-unidad') || '';
+        
+        const inputCantidad = tr.querySelector('.input-equiv');
+        const inputUnidadTexto = tr.querySelector('.input-unidad-texto');
+        
+        if (equiv > 0) {
+            inputCantidad.value = equiv;
+            inputUnidadTexto.value = unidad;
+            actualizarUnidades(inputCantidad);
+        } else {
+            inputCantidad.value = "";
+            inputUnidadTexto.value = "-";
+            tr.querySelector('.msg-unidades').textContent = "";
+        }
+    }
+    
+    function actualizarUnidades(inputObj) {
+        const tr = inputObj.closest('tr');
+        const select = tr.querySelector('.select-materia');
+        const opcion = select.options[select.selectedIndex];
+        const equivBase = parseFloat(opcion.getAttribute('data-equiv')) || 1;
+        
+        const cantidadActual = parseFloat(inputObj.value) || 0;
+        const numUnidades = (cantidadActual / equivBase).toFixed(2);
+        
+        const msg = tr.querySelector('.msg-unidades');
+        if (equivBase > 0 && cantidadActual > 0) {
+            // parseFloat quita los ceros decimales innecesarios
+            msg.textContent = "Usando " + parseFloat(numUnidades) + " unidad(es)";
+        } else {
+            msg.textContent = "";
+        }
+    }
+    
+    function sumarUnidad(btn) {
+        const tr = btn.closest('tr');
+        const inputObj = tr.querySelector('.input-equiv');
+        const select = tr.querySelector('.select-materia');
+        const opcion = select.options[select.selectedIndex];
+        const equivBase = parseFloat(opcion.getAttribute('data-equiv')) || 0;
+        
+        if (equivBase > 0) {
+            let actual = parseFloat(inputObj.value) || 0;
+            inputObj.value = (actual + equivBase).toFixed(2);
+            actualizarUnidades(inputObj);
+        }
+    }
+    
+    function restarUnidad(btn) {
+        const tr = btn.closest('tr');
+        const inputObj = tr.querySelector('.input-equiv');
+        const select = tr.querySelector('.select-materia');
+        const opcion = select.options[select.selectedIndex];
+        const equivBase = parseFloat(opcion.getAttribute('data-equiv')) || 0;
+        
+        if (equivBase > 0) {
+            let actual = parseFloat(inputObj.value) || 0;
+            let nuevo = actual - equivBase;
+            if (nuevo < 0.01) { nuevo = 0.01; } // Evitamos números negativos o cero absoluto 
+            inputObj.value = nuevo.toFixed(2);
+            actualizarUnidades(inputObj);
         }
     }
 </script>

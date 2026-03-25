@@ -94,20 +94,35 @@ def _descontar_stock_pedido(pedido):
             if comp.materia_prima in excluidas:
                 continue # No se consume si fue excluida
             
-            cantidad_a_descontar = comp.cantidad_usada * detalle.cantidad
+            # Conversión a unidades para el lote
+            from decimal import Decimal
+            equivalencia = Decimal(comp.materia_prima.cantidad_por_unidad or 1)
+            
+            # Cantidad total necesaria en medida base (gr, ml, etc)
+            # Nota: comp.cantidad_usada ya está en base unit si vino de productos/views
+            # Pero si el usuario seleccionó 'und' en la composición del producto, 
+            # ya me encargué de multiplicarlo en productos/views.
+            # No, espera. En productos/views lo guardo tal cual.
+            
+            cantidad_base_item = Decimal(comp.cantidad_usada)
+            if comp.unidad_medida == 'und' and getattr(comp.materia_prima, 'unidad_medida', '') != 'und':
+                cantidad_base_item = Decimal(comp.cantidad_usada) * equivalencia
+            
+            total_base_necesario = cantidad_base_item * Decimal(detalle.cantidad)
+            unidades_a_descontar = total_base_necesario / equivalencia
             
             # Descontar de lotes (FEFO: Primero los que vencen antes)
             lotes = Lote.objects.filter(materia_prima=comp.materia_prima, cantidad_actual__gt=0).order_by('fecha_vencimiento')
             
             for lote in lotes:
-                if cantidad_a_descontar <= 0:
+                if unidades_a_descontar <= 0:
                     break
                 
-                if lote.cantidad_actual >= cantidad_a_descontar:
-                    lote.cantidad_actual -= cantidad_a_descontar
-                    cantidad_a_descontar = 0
+                if lote.cantidad_actual >= unidades_a_descontar:
+                    lote.cantidad_actual -= unidades_a_descontar
+                    unidades_a_descontar = 0
                 else:
-                    cantidad_a_descontar -= lote.cantidad_actual
+                    unidades_a_descontar -= lote.cantidad_actual
                     lote.cantidad_actual = 0
                 lote.save()
         
@@ -116,6 +131,58 @@ def _descontar_stock_pedido(pedido):
     todos_los_productos = Producto.objects.all()
     for p in todos_los_productos:
         recalcular_stock_producto(p)
+
+def _validar_stock_pedido(productos_ids, cantidades, exclusiones_por_producto):
+    """
+    Valida si hay stock suficiente para una lista de productos.
+    exclusiones_por_producto: lista de listas de IDs de materias excluidas por cada producto.
+    Retorna (True, None) o (False, mensaje_error)
+    """
+    necesidades_mp = {} # ID Materia Prima -> Cantidad Total Necesaria
+    necesidades_prod = {} # ID Producto -> Cantidad Total Necesaria (para productos sin insumos/bebidas)
+
+    for i, (p_id, p_cant) in enumerate(zip(productos_ids, cantidades)):
+        if not p_id or not p_cant: continue
+        producto = Producto.objects.get(pk=p_id)
+        cantidad = int(p_cant)
+        excluidas_ids = [int(eid) for eid in exclusiones_por_producto[i]]
+
+        # 1. Comprobar si el producto tiene insumos definidos
+        detalles_mp = producto.detalles_materia.all()
+        if not detalles_mp or producto.categoria == 'Bebidas':
+            # Si no tiene insumos o es bebida, se descuenta del stock directo del producto
+            necesidades_prod[p_id] = necesidades_prod.get(p_id, 0) + cantidad
+        else:
+            # Si tiene insumos, sumar necesidades de cada materia prima no excluida
+            for det in detalles_mp:
+                if det.materia_prima.id not in excluidas_ids:
+                    from decimal import Decimal
+                    mp_id = det.materia_prima.id
+                    equiv = Decimal(det.materia_prima.cantidad_por_unidad or 1)
+                    
+                    # Convertimos la cantidad usada a medida base
+                    cant_base_item = Decimal(det.cantidad_usada)
+                    if det.unidad_medida == 'und' and getattr(det.materia_prima, 'unidad_medida', '') != 'und':
+                        cant_base_item = Decimal(det.cantidad_usada) * equiv
+                        
+                    cant_total_base = cant_base_item * Decimal(cantidad)
+                    necesidades_mp[mp_id] = necesidades_mp.get(mp_id, Decimal(0)) + cant_total_base
+
+    # 2. Verificar contra stock real en DB
+    for p_id, cant_req in necesidades_prod.items():
+        prod = Producto.objects.get(pk=p_id)
+        if prod.cantidad < cant_req:
+            return False, f"Stock insuficiente para '{prod.nombre_producto}'. Disponible: {prod.cantidad}, Solicitado: {cant_req}."
+
+    for mp_id, cant_req in necesidades_mp.items():
+        from decimal import Decimal
+        mp = MateriaPrima.objects.get(pk=mp_id)
+        # Comparar stock total en medida base (unidades * equivalencia)
+        stock_en_base = Decimal(mp.stock_total) * Decimal(mp.cantidad_por_unidad or 1)
+        if stock_en_base < cant_req:
+            return False, f"Insumo insuficiente: '{mp.nombre_materia_prima}'. Disponible: {stock_en_base} {mp.unidad_medida or ''}, Requerido para este pedido: {cant_req} {mp.unidad_medida or ''}."
+
+    return True, None
 
 def mostrar_registro_pedido(request):
     productos = Producto.objects.all()
@@ -126,7 +193,8 @@ def mostrar_registro_pedido(request):
                 'id': d.materia_prima.id, 
                 'nombre': d.materia_prima.nombre_materia_prima,
                 'stock': float(d.materia_prima.stock_total),
-                'cantidad_usada': d.cantidad_usada
+                # Enviamos la cantidad usada convertida a unidades para el cálculo del frontend
+                'cantidad_usada': float(d.cantidad_usada / d.materia_prima.cantidad_por_unidad) if not (d.unidad_medida == 'und' and getattr(d.materia_prima, 'unidad_medida', '') != 'und') else float(d.cantidad_usada)
             }
             for d in p.detalles_materia.all()
         ])
@@ -155,6 +223,18 @@ def registrar_pedido(request):
 
         cliente_id = request.POST.get('txt_cliente_id')
         cliente = Cliente.objects.filter(pk=cliente_id).first() if cliente_id else None
+
+        # 0. Validar Stock antes de proceder
+        productos_ids = request.POST.getlist('producto_id[]')
+        cantidades = request.POST.getlist('producto_cantidad[]')
+        exclusiones_data = []
+        for i in range(len(productos_ids)):
+            exclusiones_data.append(request.POST.getlist(f'producto_exclusiones_{i}[]'))
+        
+        es_valido, error_msg = _validar_stock_pedido(productos_ids, cantidades, exclusiones_data)
+        if not es_valido:
+            messages.error(request, f"No se puede registrar el pedido: {error_msg}")
+            return redirect('mostrar_registro_pedido')
 
         # 1. Crear el Pedido primero
         pedido = Pedido.objects.create(
@@ -236,11 +316,18 @@ def _restaurar_stock_pedido(pedido):
             if comp.materia_prima in excluidas:
                 continue
             
-            cantidad_a_restaurar = comp.cantidad_usada * detalle.cantidad
-            # Devolvemos al lote más reciente (o cualquiera existente)
+            from decimal import Decimal
+            equivalencia = Decimal(comp.materia_prima.cantidad_por_unidad or 1)
+            cantidad_base_item = Decimal(comp.cantidad_usada)
+            if comp.unidad_medida == 'und' and getattr(comp.materia_prima, 'unidad_medida', '') != 'und':
+                cantidad_base_item = Decimal(comp.cantidad_usada) * equivalencia
+                
+            unidades_a_restaurar = (cantidad_base_item * Decimal(detalle.cantidad)) / equivalencia
+            
+            # Devolvemos al lote más reciente
             lote = Lote.objects.filter(materia_prima=comp.materia_prima).order_by('-fecha_ingreso').first()
             if lote:
-                lote.cantidad_actual += Decimal(cantidad_a_restaurar)
+                lote.cantidad_actual += unidades_a_restaurar
                 lote.save()
                 
     # 3. Recalcular stock de productos afectados
@@ -259,7 +346,13 @@ def pre_editar_pedido(request, id):
     # Pre-cargar composiciones para el modal/detalles (igual que en registro)
     for p in productos:
         p.composicion_json = json.dumps([
-            {'id': d.materia_prima.id, 'nombre': d.materia_prima.nombre_materia_prima}
+            {
+                'id': d.materia_prima.id, 
+                'nombre': d.materia_prima.nombre_materia_prima,
+                'stock': float(d.materia_prima.stock_total),
+                # Enviamos la cantidad usada convertida a unidades para el cálculo del frontend
+                'cantidad_usada': float(d.cantidad_usada / d.materia_prima.cantidad_por_unidad) if not (d.unidad_medida == 'und' and getattr(d.materia_prima, 'unidad_medida', '') != 'und') else float(d.cantidad_usada)
+            }
             for d in p.detalles_materia.all()
         ])
 
@@ -295,9 +388,23 @@ def editar_pedido(request):
         id = request.POST.get('txt_id')
         pedido = Pedido.objects.get(pk=id)
         
-        # 1. Restaurar stock antiguo antes de borrar/modificar
+        # 1. Restaurar stock antiguo temporalmente para validar disponibilidad total
         _restaurar_stock_pedido(pedido)
         
+        # 1.1 Validar nuevo stock antes de borrar detalles y aplicar cambios
+        productos_ids_nuevos = request.POST.getlist('producto_id[]')
+        cantidades_nuevas = request.POST.getlist('producto_cantidad[]')
+        exclusiones_data_nuevas = []
+        for i in range(len(productos_ids_nuevos)):
+            exclusiones_data_nuevas.append(request.POST.getlist(f'producto_exclusiones_{i}[]'))
+        
+        es_valido, error_msg = _validar_stock_pedido(productos_ids_nuevos, cantidades_nuevas, exclusiones_data_nuevas)
+        if not es_valido:
+            # REVERTIR: Si no hay stock para el nuevo pedido, volvemos a descontar el stock original
+            _descontar_stock_pedido(pedido)
+            messages.error(request, f"No se pudo actualizar el pedido: {error_msg}")
+            return redirect(f'/pedidos/editar/{pedido.id}/')
+
         # 2. Actualizar datos básicos (Nota: fecha, numero_orden y metodo_pago son inmutables en edición)
         pedido.estado = request.POST.get('txt_estado', '1') == '1'
         
@@ -305,7 +412,7 @@ def editar_pedido(request):
         pedido.reserva = Reserva.objects.get(pk=request.POST.get('txt_reserva')) if request.POST.get('txt_reserva') else None
         pedido.cliente = Cliente.objects.get(pk=request.POST.get('txt_cliente')) if request.POST.get('txt_cliente') else None
         
-        # 3. Borrar detalles antiguos (el stock ya se restauró en el paso 1)
+        # 3. Borrar detalles antiguos (el stock ya se restauró en el paso 1 y validamos el nuevo)
         pedido.detalles.all().delete()
         
         # 4. Procesar nuevos Productos y sus Exclusiones

@@ -23,7 +23,8 @@ class MateriaPrima(models.Model):
     def stock_total(self):
         """Suma de la cantidad actual de todos sus lotes activos."""
         total = self.lotes.aggregate(total=models.Sum('cantidad_actual'))['total']
-        return total if total is not None else 0
+        from decimal import Decimal
+        return Decimal(total) if total is not None else Decimal(0)
 
     @property
     def is_low_stock(self):
@@ -47,8 +48,8 @@ class Lote(models.Model):
         on_delete=models.CASCADE, 
         related_name='lotes'
     )
-    cantidad_inicial = models.PositiveIntegerField('Cantidad Recibida')
-    cantidad_actual = models.PositiveIntegerField('Cantidad Disponible')
+    cantidad_inicial = models.DecimalField('Cantidad Recibida', max_digits=10, decimal_places=2)
+    cantidad_actual = models.DecimalField('Cantidad Disponible', max_digits=10, decimal_places=2)
     fecha_ingreso = models.DateTimeField('Fecha de Ingreso', auto_now_add=True)
     fecha_vencimiento = models.DateField('Fecha de Vencimiento', blank=True, null=True)
     precio_unidad = models.DecimalField('Precio x Unidad', max_digits=10, decimal_places=2, blank=True, null=True)
@@ -78,7 +79,8 @@ class DetalleProductoMateriaP(models.Model):
         verbose_name='Materia Prima',
         related_name='detalles_producto'
     )
-    cantidad_usada = models.PositiveSmallIntegerField('Cantidad Usada', default=0)
+    cantidad_usada = models.DecimalField('Cantidad Usada', max_digits=10, decimal_places=2, default=0)
+    unidad_medida = models.CharField('Unidad Usada', max_length=20, blank=True, null=True)
 
     class Meta:
         db_table = 'Details_Producto_MateriaP'
