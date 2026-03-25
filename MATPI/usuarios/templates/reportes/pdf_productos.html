@@ -1,0 +1,28 @@
+{% extends "reportes/base_pdf.html" %}
+
+{% block content %}
+<table class="table-data">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre del Producto</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th class="text-right">Precio Actual ($)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in datos %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.nombre_producto }}</td>
+            <td>{{ p.categoria|default:"Sin Categoría" }}</td>
+            <td>{% if p.cantidad > 0 %}Disponible ({{ p.cantidad }}){% else %}Agotado{% endif %}</td>
+            <td class="text-right">${{ p.precio }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center">No hay productos disponibles.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "reportes/base_pdf.html" %}
+
+{% block content %}
+<table class="table-data">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Materia Prima</th>
+            <th>Unidad Técnica</th>
+            <th class="text-right">Stock Actual</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mp in datos %}
+        <tr>
+            <td>{{ mp.id }}</td>
+            <td>{{ mp.nombre_materia_prima }}</td>
+            <td>{{ mp.unidad_medida }}</td>
+            <td class="text-right">
+                {% if mp.is_low_stock %}
+                    <strong style="color:red;">{{ mp.stock_total }}</strong>
+                {% else %}
+                    {{ mp.stock_total }}
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">No hay materia prima registrada.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

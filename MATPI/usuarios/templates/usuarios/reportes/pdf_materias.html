@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: letter; margin: 1.5cm; }
+        body { font-family: sans-serif; }
+        .header { text-align: center; border-bottom: 3px solid #27ae60; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #27ae60; color: white; padding: 10px; }
+        td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        .alerta { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MATPI - Stock de Materia Prima</h1>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>INSUMO</th>
+                <th>STOCK</th>
+                <th>UNIDAD</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in datos %}
+            <tr>
+                <td>{{ m.nombre_materia_prima }}</td>
+                <td class="{% if m.stock_total <= 10 %}alerta{% endif %}">{{ m.stock_total }}</td>
+                <td>{{ m.unidad_medida }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

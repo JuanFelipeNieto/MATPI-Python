@@ -1,22 +1,30 @@
 from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
-from . import views
+from django.urls import path, include  # <-- Estas son las piezas clave
 
 urlpatterns = [
+    # Panel de administración de Django
     path('admin/', admin.site.urls),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('dashboard/metas/', views.actualizar_metas, name='actualizar_metas'),
+
+    # --- Módulos del Sistema MATPI ---
+    
+    # 1. Usuarios y Autenticación (Login, Dashboard, Perfiles)
+    path('', include('usuarios.urls')), 
+
+    # 2. Inventario / Materia Prima
+    path('inventario/', include('materia_prima.urls')),
+
+    # 3. Pedidos (Gestión de ventas)
+    path('pedidos/', include('pedidos.urls')),
+
+    # 4. Productos (Menú de comida y bebidas)
+    path('productos/', include('productos.urls')),
+    
+    # 5. Reportes (Generales y Específicos)
+    path('reportes/', include('reportes.urls')),
+    
+    # 6. Módulos Adicionales Operativos
     path('clientes/', include('clientes.urls')),
     path('facturas/', include('facturas.urls')),
-    path('materia_prima/', include('materia_prima.urls')),
-    path('pedidos/', include('pedidos.urls')),
-    path('productos/', include('productos.urls')),
-    path('proveedores/', include('proveedores.urls')),
     path('reservas/', include('reservas.urls')),
-    path('', include('usuarios.urls')),
+    path('proveedores/', include('proveedores.urls')),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

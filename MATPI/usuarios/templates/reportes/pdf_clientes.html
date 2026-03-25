@@ -1,0 +1,26 @@
+{% extends "reportes/base_pdf.html" %}
+
+{% block content %}
+<table class="table-data">
+    <thead>
+        <tr>
+            <th>Documento / ID</th>
+            <th>Nombre del Cliente</th>
+            <th>Dirección</th>
+            <th class="text-right">Teléfono</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in datos %}
+        <tr>
+            <td>{{ c.id }}</td>
+            <td>{{ c.nombre_completo }}</td>
+            <td>{{ c.direccion|default:"N/A" }}</td>
+            <td class="text-right">{{ c.telefono|default:"N/A" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">No hay clientes registrados en el sistema.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

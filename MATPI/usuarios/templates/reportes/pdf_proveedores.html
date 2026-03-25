@@ -1,0 +1,26 @@
+{% extends "reportes/base_pdf.html" %}
+
+{% block content %}
+<table class="table-data">
+    <thead>
+        <tr>
+            <th>NIT / ID</th>
+            <th>Razón Social / Nombre</th>
+            <th>Email de Contacto</th>
+            <th class="text-right">Teléfono</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for prov in datos %}
+        <tr>
+            <td>{{ prov.id }}</td>
+            <td>{{ prov.nombre_proveedor }}</td>
+            <td>{{ prov.correo_electronico|default:"N/A" }}</td>
+            <td class="text-right">{{ prov.telefono|default:"N/A" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">No hay proveedores registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

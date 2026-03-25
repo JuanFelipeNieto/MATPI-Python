@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: letter; margin: 1.5cm; }
+        body { font-family: sans-serif; color: #2c3e50; }
+        .header { text-align: center; border-bottom: 3px solid #ffc107; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #2c3e50; color: white; padding: 10px; font-size: 12px; }
+        td { border: 1px solid #eee; padding: 10px; text-align: center; font-size: 11px; }
+        .total { text-align: right; margin-top: 20px; font-size: 18px; font-weight: bold; color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MATPI - Reporte de Ventas</h1>
+        <p>Periodo: {{ periodo }} | Fecha: {{ fecha|date:"d/m/Y" }}</p>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID PEDIDO</th>
+                <th>FECHA</th>
+                <th>VALOR</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td>#{{ pedido.id }}</td>
+                <td>{{ pedido.fecha|date:"d/m/Y" }}</td>
+                <td>$ {{ pedido.valor|floatformat:0 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No hay ventas en este periodo.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="total">Total: $ {{ ingresos_totales|floatformat:0 }}</div>
+</body>
+</html>

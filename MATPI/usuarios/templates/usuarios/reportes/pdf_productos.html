@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: letter; margin: 1.5cm; }
+        body { font-family: sans-serif; }
+        .header { text-align: center; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #3498db; color: white; padding: 10px; }
+        td { border: 1px solid #eee; padding: 10px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MATPI - Inventario de Productos</h1>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>PRODUCTO</th>
+                <th>DESCRIPCIÓN</th>
+                <th>PRECIO</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in datos %}
+            <tr>
+                <td>{{ p.nombre_producto }}</td>
+                <td>{{ p.descripcion|default:"-" }}</td>
+                <td>$ {{ p.precio|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reportes - MATPI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reportes-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .reporte-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+    
+    .reporte-card h3 {
+        margin-top: 0;
+        color: #333;
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #FFD700;
+        padding-bottom: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #555;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-family: inherit;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        text-align: center;
+        flex: 1;
+        transition: opacity 0.2s;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+
+    .btn-download {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .btn-email {
+        background-color: #008CBA;
+        color: white;
+    }
+
+    .info-text {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div>
+        <h1 style="margin:0;">Generación de Reportes</h1>
+        <p class="info-text" style="margin-top:5px; margin-bottom: 0;">Descarga o envía por correo los reportes generales y específicos de ventas.</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn" style="background-color: #7f8c8d; color: white; flex: 0 1 auto; padding: 10px 20px; text-decoration: none;">
+        ⬅️ Volver al Dashboard
+    </a>
+</div>
+
+<div class="reportes-container">
+    <!-- Card Reporte General -->
+    <div class="reporte-card">
+        <h3>Reporte General</h3>
+        <p class="info-text">Descarga el reporte unificado con la información de todos los módulos del sistema.</p>
+        
+        <form method="GET" action="{% url 'generar_reporte_csv' %}" id="form-general-download">
+            <input type="hidden" name="tipo" value="general">
+            
+            <div class="form-group">
+                <label for="periodo_general">Periodo:</label>
+                <select name="periodo" id="periodo_general" class="form-control">
+                    <option value="semanal">Semanal (Últimos 7 días)</option>
+                    <option value="mensual" selected>Mensual (Últimos 30 días)</option>
+                </select>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="submit" formaction="{% url 'generar_reporte_csv' %}" class="btn btn-download">⬇️ CSV</button>
+                <button type="submit" formaction="{% url 'generar_reporte_pdf' %}" class="btn" style="background-color: #e74c3c; color: white;">📄 PDF</button>
+            </div>
+        </form>
+        
+        <form method="POST" action="{% url 'enviar_reporte_correo' %}" style="margin-top: 10px;">
+            {% csrf_token %}
+            <input type="hidden" name="tipo" value="general">
+            <!-- Usamos JS para sincronizar el select si es necesario, o pedimos el periodo aquí también. Para simplificar, añadimos select oculto en submit. -->
+            <input type="hidden" name="periodo" id="hidden_periodo_general" value="mensual">
+            
+            <div class="form-group" style="margin-top: 15px;">
+                <label for="correo_admin_general">Correo del Administrador:</label>
+                <input type="email" name="correo" id="correo_admin_general" class="form-control" placeholder="admin@ejemplo.com" required>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="button" class="btn btn-email" onclick="syncAndSubmit('periodo_general', 'hidden_periodo_general', this.form)">✉️ Enviar por Correo</button>
+            </div>
+        </form>
+    </div>
+
+
+
+    <!-- Card Reportes PDF Individuales -->
+    <div class="reporte-card" style="grid-column: 1 / -1;">
+        <h3>Reportes Individuales PDF</h3>
+        <p class="info-text">Descarga el reporte completo en formato PDF para un módulo específico.</p>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'generar_reporte' modulo='facturas' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #e74c3c;">📄 Facturas</a>
+            <a href="{% url 'generar_reporte' modulo='clientes' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #3498db;">👥 Clientes</a>
+            <a href="{% url 'generar_reporte' modulo='materia_prima' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #2ecc71;">🥬 Materia Prima</a>
+            <a href="{% url 'generar_reporte' modulo='pedidos' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #f39c12;">📋 Pedidos</a>
+            <a href="{% url 'generar_reporte' modulo='productos' periodo='general' %}" class="btn btn-download" style="background:#2980b9; color:white; font-size: 0.9rem; padding: 10px;">📦 Productos</a>
+            <a href="{% url 'generar_reporte' modulo='proveedores' periodo='general' %}" class="btn btn-download" style="background:#16a085; color:white; font-size: 0.9rem; padding: 10px;">🚚 Proveedores</a>
+            <a href="{% url 'generar_reporte' modulo='reservas' periodo='general' %}" class="btn btn-download" style="background:#c0392b; color:white; font-size: 0.9rem; padding: 10px;">🪑 Reservas</a>
+            <a href="{% url 'generar_reporte' modulo='usuarios' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #1abc9c;">👤 Usuarios</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function syncAndSubmit(selectId, hiddenInputId, formElement) {
+        var selectVal = document.getElementById(selectId).value;
+        document.getElementById(hiddenInputId).value = selectVal;
+        formElement.submit();
+    }
+</script>
+{% endblock %}

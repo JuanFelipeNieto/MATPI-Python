@@ -80,18 +80,22 @@
                     <span class="sidebar-icon">👤</span>
                     <span class="sidebar-label">Cajeros</span>
                 </a>
+                <a href="{% url 'dashboard_reportes' %}" class="sidebar-link" title="Reportes">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Reportes</span>
+                </a>
             </div>
             {% endif %}
-            
         </nav>
 
-        <a href="{% url 'ver_perfil' request.session.usuario_id %}" class="sidebar-footer" title="Mi Perfil">
-            <div class="user-avatar-mini" style="width: 35px; height: 35px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--black); font-weight: bold; flex-shrink: 0;">
+        {# Perfil de Usuario #}
+        <a href="{% url 'ver_perfil' id=request.session.usuario_id %}" class="sidebar-footer" title="Mi Perfil">
+            <div class="user-avatar-mini" style="width: 35px; height: 35px; background: #FFD700; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #000; font-weight: bold; flex-shrink: 0;">
                 👤
             </div>
             <div class="sidebar-label" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <span style="display: block; color: var(--white); font-weight: 600;">{{ request.session.usuario_nombre|default:"Usuario" }}</span>
-                <small style="font-size: 0.65rem; color: var(--primary); font-weight: 800; text-transform: uppercase;">
+                <span style="display: block; color: white; font-weight: 600;">{{ request.session.usuario_nombre|default:"Usuario" }}</span>
+                <small style="font-size: 0.65rem; color: #FFD700; font-weight: 800; text-transform: uppercase;">
                     {% if es_admin %}ADMINISTRADOR{% else %}CAJERO{% endif %}
                 </small>
             </div>
@@ -135,7 +139,6 @@
 
         <footer>
             <p>© 2026 Matpi. Todos los derechos reservados.</p>
-
         </footer>
     </div>
 
@@ -162,12 +165,10 @@
             closeBtn.addEventListener('click', closeSidebar);
             overlay.addEventListener('click', closeSidebar);
 
-            // Resaltar link activo
             const currentPath = window.location.pathname;
             document.querySelectorAll('.sidebar-link').forEach(function (link) {
                 const href = link.getAttribute('href');
-                // Si estamos en la raíz del dashboard o en una sub-url del módulo
-                if (href === currentPath || (href !== '/' && currentPath.startsWith(href))) {
+                if (href !== '#' && (href === currentPath || (href !== '/' && currentPath.startsWith(href)))) {
                     link.classList.add('active');
                 }
             });

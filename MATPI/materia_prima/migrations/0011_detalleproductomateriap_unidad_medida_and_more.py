@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('materia_prima', '0010_alter_lote_cantidad_actual_and_more'),
+        ('materia_prima', '0001_initial'),
     ]
 
     operations = [

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - MATPI</title>
+    <style>
+        body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f4f4f4; }
+        .login-card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>Iniciar Sesión MATPI</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <p>Documento: <input type="text" name="txt_id" required></p>
+            <p>Contraseña: <input type="password" name="txt_contrasena" required></p>
+            <button type="submit">Entrar al Sistema</button>
+        </form>
+        {% if messages %}
+            {% for m in messages %}
+                <p style="color: red;">{{ m }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>
