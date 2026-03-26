@@ -405,8 +405,9 @@ def editar_pedido(request):
             messages.error(request, f"No se pudo actualizar el pedido: {error_msg}")
             return redirect(f'/pedidos/editar/{pedido.id}/')
 
-        # 2. Actualizar datos básicos (Nota: fecha, numero_orden y metodo_pago son inmutables en edición)
+        # 2. Actualizar datos básicos (Nota: fecha y numero_orden son inmutables en edición)
         pedido.estado = request.POST.get('txt_estado', '1') == '1'
+        pedido.metodo_pago = request.POST.get('txt_metodo_pago')
         
         pedido.cajero = Cajero.objects.get(pk=request.POST.get('txt_cajero')) if request.POST.get('txt_cajero') else None
         pedido.reserva = Reserva.objects.get(pk=request.POST.get('txt_reserva')) if request.POST.get('txt_reserva') else None

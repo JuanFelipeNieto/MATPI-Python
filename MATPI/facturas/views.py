@@ -7,7 +7,7 @@ from pedidos.models import Pedido
 # Create your views here.
 
 def listar_facturas(request):
-    facturas = Factura.objects.all()
+    facturas = Factura.objects.all().order_by('-id')
     data = {'facturas': facturas}
     return render(request, 'facturas/listar.html', data)
 
@@ -36,7 +36,7 @@ def mostrar_registro_factura(request):
         'pedido_seleccionado': pedido_seleccionado,
         'valor_con_iva': valor_con_iva,
         'descripcion_automatica': descripcion_automatica,
-        'pedidos_json': json.dumps([{'id': p.id, 'valor': p.valor} for p in pedidos]),
+        'pedidos_json': json.dumps([{'id': p.id, 'valor': p.valor, 'metodo_pago': p.metodo_pago} for p in pedidos]),
     }
     return render(request, 'facturas/registrar.html', data)
 
@@ -62,6 +62,8 @@ def registrar_factura(request):
     return redirect('mostrar_registro_factura')
 
 def eliminar_factura(request, id):
-    factura = Factura.objects.get(pk=id)
-    factura.delete()
+    # Por integridad de datos, las facturas ya no se pueden eliminar. 
+    # Solo el administrador de la BD podría hacerlo manualmente.
+    from django.contrib import messages
+    messages.warning(request, "Las facturas no pueden ser eliminadas del sistema por integridad contable.")
     return redirect('listar_facturas')

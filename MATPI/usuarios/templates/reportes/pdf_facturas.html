@@ -5,20 +5,26 @@
     <thead>
         <tr>
             <th>No. Factura</th>
-            <th>ID Pedido</th>
-            <th>IVA (%)</th>
-            <th>Descripción</th>
+            <th>Pedido Asignado</th>
+            <th>Detalles del Pedido</th>
+            <th>IVA %</th>
             <th class="text-right">Valor Total ($)</th>
         </tr>
     </thead>
     <tbody>
         {% for f in datos %}
         <tr>
-            <td>#{{ f.id }}</td>
-            <td>P-{{ f.pedido.id }}</td>
-            <td>{{ f.iva|default:"0" }}%</td>
-            <td>{{ f.descripcion|default:"N/A"|truncatechars:30 }}</td>
-            <td class="text-right">{{ f.valor_total }}</td>
+            <td style="vertical-align: top;">#{{ f.id }}</td>
+            <td style="vertical-align: top;">Pedido #{{ f.pedido.numero_orden }}</td>
+            <td style="vertical-align: top;">
+                <ul style="margin: 0; padding-left: 15px;">
+                    {% for d in f.pedido.detalles.all %}
+                        <li>{{ d.cantidad }}x {{ d.producto.nombre_producto }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td style="vertical-align: top;">{{ f.iva|default:"0" }}%</td>
+            <td class="text-right" style="vertical-align: top;">${{ f.valor_total }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="5" class="text-center">No hay facturas registradas.</td></tr>

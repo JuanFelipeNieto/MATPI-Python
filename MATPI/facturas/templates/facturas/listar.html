@@ -17,7 +17,7 @@
                     <th>IVA (%)</th>
                     <th>Descripción</th>
                     <th>Pedido</th>
-                    <th>Acciones</th>
+                    <th>Método de Pago</th>
                 </tr>
             </thead>
             <tbody>
@@ -28,10 +28,7 @@
                     <td>{{ factura.iva|default:"—" }}</td>
                     <td>{{ factura.descripcion|default:"—" }}</td>
                     <td>{{ factura.pedido }}</td>
-                    <td class="acciones">
-                        <a href="{% url 'eliminar_factura' factura.id %}" class="btn-danger"
-                            onclick="return confirm('¿Eliminar esta factura?')">Eliminar</a>
-                    </td>
+                    <td>{{ factura.pedido.metodo_pago|default:"—" }}</td>
                 </tr>
                 {% empty %}
                 <tr>

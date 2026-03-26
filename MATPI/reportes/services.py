@@ -1,7 +1,7 @@
 import csv
 from io import StringIO
 from django.utils import timezone
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from datetime import timedelta
 
 # Importaciones de todos los módulos solicitados
@@ -17,10 +17,14 @@ from reservas.models import Reserva
 def obtener_rango_fechas(periodo):
     """Retorna fecha_inicio y fecha_fin en base al periodo (semanal o mensual)."""
     ahora = timezone.now()
-    if periodo == 'semanal':
+    if periodo == 'diario':
+        fecha_inicio = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif periodo == 'semanal':
         fecha_inicio = ahora - timedelta(days=7)
     elif periodo == 'mensual':
         fecha_inicio = ahora - timedelta(days=30)
+    elif periodo == 'general':
+        fecha_inicio = ahora - timedelta(days=365*10)
     else:
         fecha_inicio = ahora - timedelta(days=30)
     return fecha_inicio, ahora
@@ -29,11 +33,17 @@ def obtener_contexto_general(periodo):
     """Retorna un diccionario con los datos agregados y detallados para el reporte general."""
     fecha_inicio, fecha_fin = obtener_rango_fechas(periodo)
     
-    pedidos = Pedido.objects.filter(fecha__gte=fecha_inicio, fecha__lte=fecha_fin, estado=True)
+    pedidos = Pedido.objects.filter(fecha__gte=fecha_inicio, fecha__lte=fecha_fin, estado=False)
     total_ingresos = pedidos.aggregate(Sum('valor'))['valor__sum'] or 0
     total_pedidos = pedidos.count()
     metodos_pago = pedidos.values('metodo_pago').annotate(total=Sum('valor'), cantidad=Count('id'))
-    
+    periodo_map = {
+        'diario': 'del Día',
+        'semanal': 'de la Semana',
+        'mensual': 'del Mes',
+        'general': 'en Total'
+    }
+
     # Contexto detallado consolidado
     return {
         'total_pedidos': total_pedidos,
@@ -41,16 +51,20 @@ def obtener_contexto_general(periodo):
         'metodos_pago': list(metodos_pago),
         'periodo': periodo,
         'fecha_generada': timezone.localtime(),
+        'periodo_str': periodo_map.get(periodo, 'del Periodo'),
         
         # Desglose detallado
         'pedidos': pedidos.order_by('-fecha'),
         'productos': Producto.objects.all(),
         'clientes': Cliente.objects.all(),
-        'usuarios': Usuario.objects.all(),
+        'usuarios': Usuario.objects.filter(estado='Activo', cajero__isnull=False).annotate(
+            pedidos_totales=Count('cajero__pedidos', filter=Q(cajero__pedidos__estado=False)),
+            pedidos_periodo=Count('cajero__pedidos', filter=Q(cajero__pedidos__estado=False, cajero__pedidos__fecha__gte=fecha_inicio, cajero__pedidos__fecha__lte=fecha_fin))
+        ).distinct(),
         'facturas': Factura.objects.filter(pedido__fecha__gte=fecha_inicio, pedido__fecha__lte=fecha_fin).select_related('pedido'),
         'materias': MateriaPrima.objects.all(),
         'proveedores': Proveedor.objects.all(),
-        'reservas': Reserva.objects.filter(fecha__gte=fecha_inicio, fecha__lte=fecha_fin).order_by('-fecha'),
+        'reservas': Reserva.objects.filter(fecha__gte=fecha_inicio).order_by('-fecha'),
     }
 
 def generar_csv_general(periodo):
@@ -70,11 +84,8 @@ def generar_csv_general(periodo):
     writer.writerow(['Ingresos Totales', f"${ctx['total_ingresos']:,.2f}"])
     writer.writerow([])
     
-    writer.writerow(['Desglose por Método de Pago'])
-    writer.writerow(['Método', 'Cantidad', 'Ingresos'])
-    for mp in ctx['metodos_pago']:
-        writer.writerow([mp['metodo_pago'], mp['cantidad'], f"${mp['total']:,.2f}"])
-    writer.writerow([])
+    # El desglose por método de pago ha sido eliminado por solicitud del usuario
+
     
     # 2. Pedidos
     writer.writerow(['--- DETALLE DE PEDIDOS ---'])
@@ -92,9 +103,9 @@ def generar_csv_general(periodo):
 
     # 4. Clientes
     writer.writerow(['--- DETALLE DE CLIENTES ---'])
-    writer.writerow(['Documento', 'Nombre', 'Teléfono', 'Dirección'])
+    writer.writerow(['Documento', 'Nombre', 'Teléfono', 'Dirección', 'Localidad'])
     for c in ctx['clientes']:
-        writer.writerow([c.id, c.nombre_completo, c.telefono, c.direccion])
+        writer.writerow([c.id, c.nombre_completo, c.telefono, c.direccion, c.localidad])
     writer.writerow([])
 
     # 5. Usuarios

@@ -38,7 +38,7 @@
                                         <option value="" data-equiv="" data-unidad="">— Seleccione —</option>
                                         {% for materia in materias_primas %}
                                             <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}" {% if materia.id == item.materia_prima.id %}selected{% endif %}>
-                                                {{ materia.nombre_materia_prima }}
+                                                {{ materia.nombre_materia_prima }} ({{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }})
                                             </option>
                                         {% endfor %}
                                     </select>
@@ -65,7 +65,7 @@
                                     <select name="materia_id[]" class="form-control select-materia" required onchange="actualizarEquivalencia(this)">
                                         <option value="" data-equiv="" data-unidad="">— Seleccione —</option>
                                         {% for materia in materias_primas %}
-                                            <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }}</option>
+                                            <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }} ({{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }})</option>
                                         {% endfor %}
                                     </select>
                                 </td>

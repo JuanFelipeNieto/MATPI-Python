@@ -75,8 +75,8 @@ def dashboard(request):
         'total_reservas': Reserva.objects.count(),
         'ingresos': Pedido.objects.aggregate(total=Sum('valor'))['total'] or 0,
         'pedidos_recientes': Pedido.objects.all().order_by('-id')[:5],
-        'materias_bajas': [mp for mp in MateriaPrima.objects.all() if mp.stock_total <= 10],
         'config': config,
+        'usuario_nombre': request.session.get('usuario_nombre'),
     }
     return render(request, 'dashboard.html', contexto)
 
@@ -91,18 +91,18 @@ def listar_usuarios(request):
         return redirect('dashboard')
     
     buscar = request.GET.get('buscar', '')
-    usuarios = Usuario.objects.all()
+    usuarios = Usuario.objects.filter(cajero__isnull=False)
     if buscar:
         usuarios = usuarios.filter(
             models.Q(id__icontains=buscar) | models.Q(nombre_completo__icontains=buscar)
         )
-    return render(request, 'listar.html', {'usuarios': usuarios, 'buscar': buscar, 'es_admin': True})
+    return render(request, 'usuarios/listar.html', {'usuarios': usuarios, 'buscar': buscar, 'es_admin': True})
 
 @login_requerido
 def ver_perfil(request, id):
     usuario = get_object_or_404(Usuario, id=id)
     cajero = Cajero.objects.filter(usuario=usuario).first()
-    return render(request, 'perfil.html', {
+    return render(request, 'usuarios/perfil.html', {
         'usuario': usuario, 
         'cajero': cajero,
         'es_admin': es_administrador(request)
@@ -119,14 +119,29 @@ def registrar_usuario(request):
                     nombre_completo=request.POST.get('txt_nombre'),
                     contraseña=request.POST.get('txt_contrasena'),
                     correo_electronico=request.POST.get('txt_correo'),
-                    telefono=request.POST.get('txt_telefono')
+                    telefono=request.POST.get('txt_telefono'),
+                    fecha_nacimiento=request.POST.get('txt_fecha_nacimiento'),
+                    direccion=request.POST.get('txt_direccion'),
+                    fecha_ingreso=request.POST.get('txt_fecha_ingreso'),
+                    experiencia_laboral=request.POST.get('txt_experiencia'),
+                    estado=request.POST.get('txt_estado', 'Activo')
                 )
-                Cajero.objects.create(usuario=u, eps=request.POST.get('txt_eps'))
+                fecha_term = request.POST.get('txt_fecha_terminacion')
+                Cajero.objects.create(
+                    usuario=u, 
+                    eps=request.POST.get('txt_eps'),
+                    tipo_contrato=request.POST.get('txt_tipo_contrato'),
+                    turno=request.POST.get('txt_turno'),
+                    fecha_terminacion_contrato=fecha_term if fecha_term else None,
+                    contacto_emergencia_nombre=request.POST.get('txt_emergencia_nombre'),
+                    contacto_emergencia_parentesco=request.POST.get('txt_emergencia_parentesco'),
+                    contacto_emergencia_numero=request.POST.get('txt_emergencia_numero')
+                )
             messages.success(request, f"Usuario {u.nombre_completo} creado.")
             return redirect('listar_usuarios')
         except Exception as e:
             messages.error(request, f"Error: {e}")
-    return render(request, 'registrar.html', {'es_admin': True})
+    return render(request, 'usuarios/registrar.html', {'es_admin': True})
 
 @login_requerido
 def editar_usuario(request, id=None):
@@ -135,7 +150,7 @@ def editar_usuario(request, id=None):
     if id: # Cargar el formulario con datos
         usuario = get_object_or_404(Usuario, id=id)
         cajero = Cajero.objects.filter(usuario=usuario).first()
-        return render(request, 'editar.html', {
+        return render(request, 'usuarios/editar.html', {
             'usuario': usuario, 
             'eps': cajero.eps if cajero else "", 
             'es_admin': True
@@ -148,13 +163,41 @@ def editar_usuario(request, id=None):
                 usuario.nombre_completo = request.POST.get('txt_nombre')
                 usuario.correo_electronico = request.POST.get('txt_correo')
                 usuario.telefono = request.POST.get('txt_telefono')
+                usuario.fecha_nacimiento = request.POST.get('txt_fecha_nacimiento')
+                usuario.direccion = request.POST.get('txt_direccion')
+                usuario.estado = request.POST.get('txt_estado')
+                # Optional fields that admins can update
+                if request.POST.get('txt_fecha_ingreso'):
+                    usuario.fecha_ingreso = request.POST.get('txt_fecha_ingreso')
+                if request.POST.get('txt_experiencia') is not None:
+                    usuario.experiencia_laboral = request.POST.get('txt_experiencia')
                 if request.POST.get('txt_contrasena'):
                     usuario.contraseña = request.POST.get('txt_contrasena')
                 usuario.save()
                 
-                cajero, _ = Cajero.objects.get_or_create(usuario=usuario)
-                cajero.eps = request.POST.get('txt_eps')
-                cajero.save()
+                if usuario.es_cajero:
+                    cajero, _ = Cajero.objects.get_or_create(usuario=usuario)
+                    if request.POST.get('txt_eps'):
+                        cajero.eps = request.POST.get('txt_eps')
+                    if request.POST.get('txt_tipo_contrato'):
+                        cajero.tipo_contrato = request.POST.get('txt_tipo_contrato')
+                    if request.POST.get('txt_turno'):
+                        cajero.turno = request.POST.get('txt_turno')
+                    if request.POST.get('txt_emergencia_nombre'):
+                        cajero.contacto_emergencia_nombre = request.POST.get('txt_emergencia_nombre')
+                    if request.POST.get('txt_emergencia_parentesco'):
+                        cajero.contacto_emergencia_parentesco = request.POST.get('txt_emergencia_parentesco')
+                    if request.POST.get('txt_emergencia_numero'):
+                        cajero.contacto_emergencia_numero = request.POST.get('txt_emergencia_numero')
+                        
+                    # Handle empty date
+                    fecha_term = request.POST.get('txt_fecha_terminacion')
+                    if fecha_term:
+                        cajero.fecha_terminacion_contrato = fecha_term
+                    elif request.POST.get('txt_tipo_contrato') == 'Indefinido':
+                        cajero.fecha_terminacion_contrato = None
+                        
+                    cajero.save()
             messages.success(request, "Usuario actualizado correctamente.")
         except Exception as e:
             messages.error(request, f"Error al editar: {e}")
@@ -191,30 +234,56 @@ def generar_pdf(template_src, contexto, nombre_archivo):
 
 @login_requerido
 def reporte_modulo_pdf(request, modulo, periodo):
+    from reportes.services import obtener_rango_fechas
     ahora = timezone.now()
+    fecha_inicio, fecha_fin = obtener_rango_fechas(periodo)
+    
+    pedidos_completados = Pedido.objects.filter(fecha__gte=fecha_inicio, fecha__lte=fecha_fin, estado=False)
+    reservas_periodo = Reserva.objects.filter(fecha__gte=fecha_inicio)
+    facturas_periodo = Factura.objects.filter(pedido__fecha__gte=fecha_inicio, pedido__fecha__lte=fecha_fin)
+    
     config_reporte = {
-        'ventas': (Pedido.objects.all(), 'reportes/pdf_pedidos.html'),
-        'pedidos': (Pedido.objects.all(), 'reportes/pdf_pedidos.html'),
+        'ventas': (pedidos_completados, 'reportes/pdf_pedidos.html'),
+        'pedidos': (pedidos_completados, 'reportes/pdf_pedidos.html'),
         'productos': (Producto.objects.all(), 'reportes/pdf_productos.html'),
         'materias': (MateriaPrima.objects.all(), 'reportes/pdf_materias.html'),
         'materia_prima': (MateriaPrima.objects.all(), 'reportes/pdf_materias.html'),
-        'usuarios': (Usuario.objects.all(), 'reportes/pdf_usuarios.html'),
         'clientes': (Cliente.objects.all(), 'reportes/pdf_clientes.html'),
-        'facturas': (Factura.objects.all(), 'reportes/pdf_facturas.html'),
+        'facturas': (facturas_periodo, 'reportes/pdf_facturas.html'),
         'proveedores': (Proveedor.objects.all(), 'reportes/pdf_proveedores.html'),
-        'reservas': (Reserva.objects.all(), 'reportes/pdf_reservas.html'),
+        'reservas': (reservas_periodo, 'reportes/pdf_reservas.html'),
     }
 
-    if modulo == 'usuarios' and not es_administrador(request):
-        return redirect('dashboard')
-
-    qs, template_path = config_reporte.get(modulo, (None, ""))
+    if modulo == 'usuarios':
+        if not es_administrador(request):
+            return redirect('dashboard')
+        
+        cajeros = Cajero.objects.filter(usuario__estado='Activo').annotate(
+            pedidos_totales=models.Count('pedidos', filter=models.Q(pedidos__estado=False)),
+            pedidos_periodo=models.Count('pedidos', filter=models.Q(pedidos__estado=False, pedidos__fecha__gte=fecha_inicio, pedidos__fecha__lte=fecha_fin))
+        ).select_related('usuario')
+        
+        qs = cajeros
+        template_path = 'reportes/pdf_usuarios.html'
+        titulo = "Reporte de Cajeros"
+    else:
+        qs, template_path = config_reporte.get(modulo, (None, ""))
+        titulo = f"Reporte de {modulo.capitalize()}"
     
+    
+    periodo_map = {
+        'diario': 'del Día',
+        'semanal': 'de la Semana',
+        'mensual': 'del Mes',
+        'general': 'en Total'
+    }
+
     contexto = {
         'datos': qs,
-        'titulo': f"Reporte de {modulo.capitalize()}",
+        'titulo': titulo,
         'fecha': ahora,
-        'vendedor': request.session.get('usuario_nombre')
+        'vendedor': request.session.get('usuario_nombre'),
+        'periodo_str': periodo_map.get(periodo, 'del Periodo')
     }
     return generar_pdf(template_path, contexto, f"MATPI_{modulo}")
 

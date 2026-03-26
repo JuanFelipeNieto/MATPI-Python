@@ -4,28 +4,38 @@
 <table class="table-data">
     <thead>
         <tr>
-            <th>ID</th>
             <th>Materia Prima</th>
             <th>Unidad Técnica</th>
-            <th class="text-right">Stock Actual</th>
+            <th class="text-center">Cant. Lotes</th>
+            <th>Fechas de Suministro</th>
+            <th class="text-right">Stock Total</th>
         </tr>
     </thead>
     <tbody>
         {% for mp in datos %}
         <tr>
-            <td>{{ mp.id }}</td>
-            <td>{{ mp.nombre_materia_prima }}</td>
-            <td>{{ mp.unidad_medida }}</td>
-            <td class="text-right">
+            <td style="vertical-align: top;">{{ mp.nombre_materia_prima }} ({{ mp.cantidad_por_unidad }} {{ mp.unidad_medida }})</td>
+            <td style="vertical-align: top;">{{ mp.unidad_medida }}</td>
+            <td class="text-center" style="vertical-align: top;">{{ mp.lotes.count }}</td>
+            <td style="vertical-align: top;">
+                <ul style="margin: 0; padding-left: 15px;">
+                    {% for lote in mp.lotes.all %}
+                        <li>{{ lote.fecha_ingreso|date:"d/m/Y" }} {% if lote.cantidad_actual == 0 %}(Agotado){% endif %}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td class="text-right" style="vertical-align: top;">
                 {% if mp.is_low_stock %}
-                    <strong style="color:red;">{{ mp.stock_total }}</strong>
+                    <strong style="color:red;">{{ mp.stock_total|floatformat:0 }}</strong>
                 {% else %}
-                    {{ mp.stock_total }}
+                    {{ mp.stock_total|floatformat:0 }}
                 {% endif %}
+                <br>
+                <span style="font-size: 11px; color: #555;">Eqv: {{ mp.equivalencia_total|floatformat:0 }} {{ mp.unidad_medida }}</span>
             </td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="text-center">No hay materia prima registrada.</td></tr>
+        <tr><td colspan="5" class="text-center">No hay materias primas registradas.</td></tr>
         {% endfor %}
     </tbody>
 </table>

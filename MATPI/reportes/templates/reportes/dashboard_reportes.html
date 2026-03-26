@@ -93,7 +93,7 @@
 <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
     <div>
         <h1 style="margin:0;">Generación de Reportes</h1>
-        <p class="info-text" style="margin-top:5px; margin-bottom: 0;">Descarga o envía por correo los reportes generales y específicos de ventas.</p>
+        <p class="info-text" style="margin-top:5px; margin-bottom: 0;">Descarga en formato PDF los reportes generales y específicos de ventas.</p>
     </div>
     <a href="{% url 'dashboard' %}" class="btn" style="background-color: #7f8c8d; color: white; flex: 0 1 auto; padding: 10px 20px; text-decoration: none;">
         ⬅️ Volver al Dashboard
@@ -112,50 +112,112 @@
             <div class="form-group">
                 <label for="periodo_general">Periodo:</label>
                 <select name="periodo" id="periodo_general" class="form-control">
+                    <option value="diario">Diario (Hoy)</option>
                     <option value="semanal">Semanal (Últimos 7 días)</option>
                     <option value="mensual" selected>Mensual (Últimos 30 días)</option>
                 </select>
             </div>
             
             <div class="action-buttons">
-                <button type="submit" formaction="{% url 'generar_reporte_csv' %}" class="btn btn-download">⬇️ CSV</button>
                 <button type="submit" formaction="{% url 'generar_reporte_pdf' %}" class="btn" style="background-color: #e74c3c; color: white;">📄 PDF</button>
             </div>
         </form>
-        
-        <form method="POST" action="{% url 'enviar_reporte_correo' %}" style="margin-top: 10px;">
-            {% csrf_token %}
-            <input type="hidden" name="tipo" value="general">
-            <!-- Usamos JS para sincronizar el select si es necesario, o pedimos el periodo aquí también. Para simplificar, añadimos select oculto en submit. -->
-            <input type="hidden" name="periodo" id="hidden_periodo_general" value="mensual">
-            
-            <div class="form-group" style="margin-top: 15px;">
-                <label for="correo_admin_general">Correo del Administrador:</label>
-                <input type="email" name="correo" id="correo_admin_general" class="form-control" placeholder="admin@ejemplo.com" required>
-            </div>
-            
-            <div class="action-buttons">
-                <button type="button" class="btn btn-email" onclick="syncAndSubmit('periodo_general', 'hidden_periodo_general', this.form)">✉️ Enviar por Correo</button>
-            </div>
-        </form>
     </div>
-
-
 
     <!-- Card Reportes PDF Individuales -->
     <div class="reporte-card" style="grid-column: 1 / -1;">
         <h3>Reportes Individuales PDF</h3>
         <p class="info-text">Descarga el reporte completo en formato PDF para un módulo específico.</p>
         
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="{% url 'generar_reporte' modulo='facturas' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #e74c3c;">📄 Facturas</a>
-            <a href="{% url 'generar_reporte' modulo='clientes' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #3498db;">👥 Clientes</a>
-            <a href="{% url 'generar_reporte' modulo='materia_prima' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #2ecc71;">🥬 Materia Prima</a>
-            <a href="{% url 'generar_reporte' modulo='pedidos' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #f39c12;">📋 Pedidos</a>
-            <a href="{% url 'generar_reporte' modulo='productos' periodo='general' %}" class="btn btn-download" style="background:#2980b9; color:white; font-size: 0.9rem; padding: 10px;">📦 Productos</a>
-            <a href="{% url 'generar_reporte' modulo='proveedores' periodo='general' %}" class="btn btn-download" style="background:#16a085; color:white; font-size: 0.9rem; padding: 10px;">🚚 Proveedores</a>
-            <a href="{% url 'generar_reporte' modulo='reservas' periodo='general' %}" class="btn btn-download" style="background:#c0392b; color:white; font-size: 0.9rem; padding: 10px;">🪑 Reservas</a>
-            <a href="{% url 'generar_reporte' modulo='usuarios' periodo='general' %}" class="btn btn-download" style="flex: 0 1 auto; background-color: #1abc9c;">👤 Usuarios</a>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">
+            <!-- Facturas -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">📄 Facturas</h4>
+                <select id="periodo_facturas" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/facturas/' + document.getElementById('periodo_facturas').value + '/'" class="btn" style="background-color: #e74c3c; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
+            <!-- Clientes -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">👥 Clientes</h4>
+                <select id="periodo_clientes" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/clientes/' + document.getElementById('periodo_clientes').value + '/'" class="btn" style="background-color: #3498db; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
+            <!-- Materia Prima -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">🥬 Materia Prima</h4>
+                <select id="periodo_materia" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/materia_prima/' + document.getElementById('periodo_materia').value + '/'" class="btn" style="background-color: #2ecc71; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
+            <!-- Pedidos -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">📋 Pedidos</h4>
+                <select id="periodo_pedidos" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/pedidos/' + document.getElementById('periodo_pedidos').value + '/'" class="btn" style="background-color: #f39c12; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
+            <!-- Productos -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">📦 Productos</h4>
+                <select id="periodo_productos" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/productos/' + document.getElementById('periodo_productos').value + '/'" class="btn" style="background-color: #2980b9; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
+            <!-- Proveedores -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">🚚 Proveedores</h4>
+                <select id="periodo_proveedores" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/proveedores/' + document.getElementById('periodo_proveedores').value + '/'" class="btn" style="background-color: #16a085; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
+            <!-- Reservas -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">🪑 Reservas</h4>
+                <select id="periodo_reservas" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/reservas/' + document.getElementById('periodo_reservas').value + '/'" class="btn" style="background-color: #c0392b; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
+            <!-- Cajeros -->
+            <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #555;">👤 Cajeros</h4>
+                <select id="periodo_usuarios" style="width: 100%; margin-bottom: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="general">Todo</option>
+                </select>
+                <button onclick="window.location.href='/reporte/usuarios/' + document.getElementById('periodo_usuarios').value + '/'" class="btn" style="background-color: #1abc9c; color: white; width: 100%; font-size: 0.9em; padding: 8px;">Descargar</button>
+            </div>
         </div>
     </div>
 </div>

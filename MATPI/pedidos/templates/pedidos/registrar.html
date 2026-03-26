@@ -378,8 +378,9 @@
         boton.innerText = (div.style.display === "none") ? "⚙️ Personalizar" : "🔼 Cerrar";
     }
 
-    function actualizarComposicion_y_Precio(selectElement) {
-        const fila = selectElement.closest('tr');
+    function actualizarComposicion_y_Precio(elemento) {
+        const fila = elemento.closest('tr');
+        const selectElement = fila.querySelector('.select-producto');
         const opcion = selectElement.options[selectElement.selectedIndex];
         const listaExcl = fila.querySelector('.lista-exclusiones');
         const indice = fila.getAttribute('data-indice') || 0;
@@ -387,41 +388,40 @@
 
         if (opcion.value && listaExcl) {
             const composicion = JSON.parse(opcion.getAttribute('data-composicion') || "[]");
-            let html = "";
+            
+            // 1. Construir HTML solo si el cambio vino del Select (Para no borrar los checkboxes chequeados al hacer click)
+            if (elemento.type !== 'checkbox') {
+                let html = "";
+                composicion.forEach(mp => {
+                    html += `
+                        <label class="exclusion-item" ${mp.stock <= 0 ? 'style="border-color: #ef4444; background: #fef2f2;"' : ''}>
+                            <input type="checkbox" name="producto_exclusiones_${indice}[]" value="${mp.id}" onchange="actualizarComposicion_y_Precio(this)">
+                            <span ${mp.stock <= 0 ? 'style="color: #b91c1c; font-weight: bold;"' : ''}>
+                                Sin ${mp.nombre} ${mp.stock <= 0 ? '(¡AGOTADO!)' : ''}
+                            </span>
+                        </label>
+                    `;
+                });
+                listaExcl.innerHTML = html || "<p style='font-size: 0.8rem; color: #94a3b8;'>Sin ingredientes modificables.</p>";
+            }
+
+            // 2. Calcular los límites de stock ignorando los ingredientes que estén excluidos
             let stockLimitado = Infinity;
             let agotado = false;
-            let detallesStock = [];
+            const indicesExcluidos = Array.from(fila.querySelectorAll(`.lista-exclusiones input[type="checkbox"]:checked`)).map(cb => parseInt(cb.value));
 
             composicion.forEach(mp => {
-                // Calcular cuántas unidades de producto se pueden hacer con esta materia prima
-                const posible = Math.floor(mp.stock / mp.cantidad_usada);
-                if (posible < stockLimitado) stockLimitado = posible;
-                if (mp.stock <= 0) agotado = true;
-
-                detallesStock.push(`${mp.nombre}: ${mp.stock} disponibles`);
-
-                html += `
-                    <label class="exclusion-item" ${mp.stock <= 0 ? 'style="border-color: #ef4444; background: #fef2f2;"' : ''}>
-                        <input type="checkbox" name="producto_exclusiones_${indice}[]" value="${mp.id}" onchange="actualizarComposicion_y_Precio(this.closest('tr').querySelector('.select-producto'))">
-                        <span ${mp.stock <= 0 ? 'style="color: #b91c1c; font-weight: bold;"' : ''}>
-                            Sin ${mp.nombre} ${mp.stock <= 0 ? '(¡AGOTADO!)' : ''}
-                        </span>
-                    </label>
-                `;
+                if (!indicesExcluidos.includes(mp.id)) {
+                    const posible = Math.floor(mp.stock / mp.cantidad_usada);
+                    if (posible < stockLimitado) stockLimitado = posible;
+                    if (mp.stock <= 0) agotado = true;
+                }
             });
 
+            // 3. Aplicar estado visual si faltan ingredientes vitales
             if (agotado) {
-                // Verificar si las materias agotadas están excluidas
-                const indicesExcluidos = Array.from(fila.querySelectorAll(`.lista-exclusiones input[type="checkbox"]:checked`)).map(cb => parseInt(cb.value));
-                const agotadasNoExcluidas = composicion.filter(mp => mp.stock <= 0 && !indicesExcluidos.includes(mp.id));
-                
-                if (agotadasNoExcluidas.length > 0) {
-                    fila.style.border = "2px solid #ef4444";
-                    fila.style.backgroundColor = "#fff5f5";
-                } else {
-                    fila.style.border = "";
-                    fila.style.backgroundColor = "";
-                }
+                fila.style.border = "2px solid #ef4444";
+                fila.style.backgroundColor = "#fff5f5";
             } else {
                 fila.style.border = "";
                 fila.style.backgroundColor = "";
@@ -449,8 +449,6 @@
                     opt.style.color = "inherit";
                 });
             }
-
-            listaExcl.innerHTML = html || "<p style='font-size: 0.8rem; color: #94a3b8;'>Sin ingredientes modificables.</p>";
         } else if(listaExcl) {
             listaExcl.innerHTML = "";
             fila.style.border = "";

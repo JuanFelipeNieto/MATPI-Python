@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Bebida — Matpi{% endblock %}
+
+{% block content %}
+<div class="formulario-seccion">
+    <h1>Editar Bebida</h1>
+
+    <form method="POST" action="{% url 'editar_producto' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ producto.id }}">
+        <input type="hidden" name="txt_categoria" value="Bebidas">
+
+        <div class="form-group">
+            <label for="materia_id">Seleccionar Bebida del Inventario</label>
+            <select name="materia_id[]" id="materia_id" class="form-control" required>
+                <option value="">— Seleccione la bebida en inventario —</option>
+                {% for materia in materias_primas %}
+                    <option value="{{ materia.id }}" {% if current_materia and current_materia.id == materia.id %}selected{% endif %}>
+                        {{ materia.nombre_materia_prima }} ({{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }})
+                    </option>
+                {% endfor %}
+            </select>
+            <small style="color: #64748b; margin-top: 5px; display: block;">
+                Seleccione el ítem del inventario (materia prima) que corresponde a esta bebida.
+            </small>
+            <!-- Cantidad fija de 1 para bebidas simples -->
+            <input type="hidden" name="materia_cantidad[]" value="1">
+            <input type="hidden" name="materia_unidad[]" value="und">
+        </div>
+
+        <div class="form-group">
+            <label for="txt_precio">Precio de Venta</label>
+            <input type="number" id="txt_precio" name="txt_precio" value="{{ producto.precio }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="txt_imagen">Imagen (Opcional)</label>
+            {% if producto.imagen %}
+                <div style="margin-bottom: 10px;">
+                    <img src="{{ producto.imagen.url }}" alt="Imagen actual" style="max-width: 200px; border-radius: 8px;">
+                </div>
+            {% endif %}
+            <input type="file" id="txt_imagen" name="txt_imagen" accept="image/*">
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="submit" class="btn btn-guardar">Actualizar</button>
+            <a href="{% url 'listar_productos' %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

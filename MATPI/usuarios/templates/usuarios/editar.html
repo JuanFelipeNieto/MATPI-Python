@@ -11,7 +11,7 @@
         <p style="color: #666;">Actualización de información administrativa y personal</p>
     </div>
 
-    <form method="POST" action="{% url 'editar_usuario' %}" class="profile-form">
+    <form method="POST" action="{% url 'procesar_edicion' %}" class="profile-form">
         {% csrf_token %}
         <input type="hidden" name="txt_id" value="{{ usuario.id }}">
 
@@ -46,7 +46,7 @@
 
                 <div class="form-group">
                     <label for="txt_telefono">Teléfono de Contacto</label>
-                    <input type="text" id="txt_telefono" name="txt_telefono" value="{{ usuario.telefono|default:'' }}" required placeholder="Ej: 3001234567">
+                    <input type="text" id="txt_telefono" name="txt_telefono" value="{{ usuario.telefono|default:'' }}" required placeholder="Ej: 3001234567" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 </div>
 
                 <div class="form-group">
@@ -200,4 +200,22 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const today = new Date();
+        
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        
+        // Fecha de Nacimiento: Máximo hace 18 años.
+        const inputFechaNacimiento = document.getElementById('txt_fecha_nacimiento');
+        if (inputFechaNacimiento) {
+            const minYear = yyyy - 18;
+            const maxDateNacimiento = `${minYear}-${mm}-${dd}`;
+            inputFechaNacimiento.max = maxDateNacimiento;
+        }
+    });
+</script>
 {% endblock %}

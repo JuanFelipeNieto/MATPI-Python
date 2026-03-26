@@ -98,7 +98,15 @@ def mostrar_registro_bebida(request):
         messages.error(request, "Solo el administrador puede registrar productos.")
         return redirect('listar_productos')
         
-    materias_primas = MateriaPrima.objects.filter(tipo='Bebida')
+    # Obtenemos los IDs y nombres de bebidas ya registradas para excluirlas de la lista
+    materias_usadas_ids = DetalleProductoMateriaP.objects.filter(
+        producto__categoria='Bebidas'
+    ).values_list('materia_prima_id', flat=True)
+    
+    nombres_bebidas = Producto.objects.filter(categoria='Bebidas').values_list('nombre_producto', flat=True)
+
+    materias_primas = MateriaPrima.objects.filter(tipo='Bebida').exclude(id__in=materias_usadas_ids).exclude(nombre_materia_prima__in=nombres_bebidas)
+    
     return render(request, 'productos/registrar_bebida.html', {
         'es_admin': es_admin,
         'materias_primas': materias_primas
@@ -163,16 +171,32 @@ def pre_editar_producto(request, id):
         return redirect('listar_productos')
         
     producto = get_object_or_404(Producto, pk=id)
-    materias_primas = MateriaPrima.objects.all()
-    # Obtenemos la composición actual para pre-cargar la tabla
-    composicion = producto.detalles_materia.all()
     
-    return render(request, 'productos/editar.html', {
-        'producto': producto,
-        'es_admin': es_admin,
-        'materias_primas': materias_primas,
-        'composicion': composicion
-    })
+    if producto.categoria == 'Bebidas':
+        materias_primas = MateriaPrima.objects.filter(tipo='Bebida')
+        # Obtenemos el link actual para la selección
+        current_materia = producto.detalles_materia.first().materia_prima if producto.detalles_materia.exists() else None
+        
+        # Fallback para bebidas antiguas
+        if not current_materia:
+            current_materia = MateriaPrima.objects.filter(nombre_materia_prima=producto.nombre_producto, tipo='Bebida').first()
+        
+        return render(request, 'productos/editar_bebida.html', {
+            'producto': producto,
+            'es_admin': es_admin,
+            'materias_primas': materias_primas,
+            'current_materia': current_materia
+        })
+    else:
+        materias_primas = MateriaPrima.objects.all()
+        composicion = producto.detalles_materia.all()
+        
+        return render(request, 'productos/editar.html', {
+            'producto': producto,
+            'es_admin': es_admin,
+            'materias_primas': materias_primas,
+            'composicion': composicion
+        })
 
 def editar_producto(request):
     # Bloqueo de seguridad para el proceso de guardado de edición
@@ -184,9 +208,19 @@ def editar_producto(request):
         id_prod = request.POST.get('txt_id')
         producto = get_object_or_404(Producto, pk=id_prod)
         
-        producto.nombre_producto = request.POST.get('txt_nombre')
+        nombre = request.POST.get('txt_nombre')
+        categoria = request.POST.get('txt_categoria')
+        
+        if not nombre and categoria == 'Bebidas':
+            materia_id = request.POST.getlist('materia_id[]')
+            if materia_id and materia_id[0]:
+                from materia_prima.models import MateriaPrima
+                mp = MateriaPrima.objects.get(pk=materia_id[0])
+                nombre = mp.nombre_materia_prima
+
+        producto.nombre_producto = nombre or producto.nombre_producto
         producto.precio          = request.POST.get('txt_precio')
-        producto.categoria       = request.POST.get('txt_categoria')
+        producto.categoria       = categoria
         
         if request.FILES.get('txt_imagen'):
             producto.imagen = request.FILES.get('txt_imagen')

@@ -1,0 +1,110 @@
+{% extends "reportes/base_pdf.html" %}
+
+{% block content %}
+<table class="table-data" style="margin-bottom: 20px;">
+    <tbody>
+        <tr>
+            <th style="width: 50%;">Total Pedidos Atendidos</th>
+            <td style="width: 50%; font-size: 14px;"><strong>{{ datos_general.total_pedidos }}</strong></td>
+        </tr>
+        <tr>
+            <th style="width: 50%;">Ingresos Totales</th>
+            <td style="width: 50%; font-size: 14px; color: #27ae60;"><strong>${{ datos_general.total_ingresos }}</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">Desglose por Método de Pago</h2>
+<table class="table-data">
+    <thead>
+        <tr>
+            <th>Método de Pago</th>
+            <th class="text-center">Cantidad de Pedidos</th>
+            <th class="text-right">Ingresos Generados</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for mp in datos_general.metodos_pago %}
+        <tr>
+            <td>{{ mp.metodo_pago }}</td>
+            <td class="text-center">{{ mp.cantidad }}</td>
+            <td class="text-right">${{ mp.total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-center">No hay registros de pagos en el periodo.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">1. Detalle de Pedidos</h2>
+<table class="table-data">
+    <thead><tr><th>Fecha</th><th>Método Pago</th><th class="text-right">Valor</th></tr></thead>
+    <tbody>
+        {% for p in datos_general.pedidos %}<tr><td>{{ p.fecha|date:"d/m/Y H:i" }}</td><td>{{ p.metodo_pago }}</td><td class="text-right">${{ p.valor }}</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">2. Detalle de Productos</h2>
+<table class="table-data">
+    <thead><tr><th>Nombre</th><th>Categoría</th><th class="text-right">Stock</th><th class="text-right">Precio</th></tr></thead>
+    <tbody>
+        {% for p in datos_general.productos %}<tr><td>{{ p.nombre_producto }}</td><td>{{ p.categoria|default:"N/A" }}</td><td class="text-right">{{ p.cantidad }}</td><td class="text-right">${{ p.precio }}</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">3. Clientes Registrados</h2>
+<table class="table-data">
+    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Dirección</th></tr></thead>
+    <tbody>
+        {% for c in datos_general.clientes %}<tr><td>{{ c.nombre_completo }}</td><td>{{ c.telefono|default:"N/A" }}</td><td>{{ c.direccion|default:"N/A" }}</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">4. Usuarios del Sistema</h2>
+<table class="table-data">
+    <thead><tr><th>Nombre</th><th>Correo Electrónico</th><th>Teléfono</th></tr></thead>
+    <tbody>
+        {% for u in datos_general.usuarios %}<tr><td>{{ u.nombre_completo }}</td><td>{{ u.correo_electronico }}</td><td>{{ u.telefono }}</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">5. Registro de Facturas</h2>
+<table class="table-data">
+    <thead><tr><th>N° Factura</th><th>Pedido</th><th>Detalles</th><th>IVA %</th><th class="text-right">Valor Total ($)</th></tr></thead>
+    <tbody>
+        {% for f in datos_general.facturas %}<tr><td style="vertical-align: top;">#{{ f.id }}</td><td style="vertical-align: top;">#{{ f.pedido.numero_orden }}</td><td style="vertical-align: top;"><ul style="margin: 0; padding-left: 15px;">{% for d in f.pedido.detalles.all %}<li>{{ d.cantidad }}x {{ d.producto.nombre_producto }}</li>{% endfor %}</ul></td><td style="vertical-align: top;">{{ f.iva|default:"0" }}%</td><td class="text-right" style="vertical-align: top;">${{ f.valor_total }}</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">6. Estado de Materia Prima</h2>
+<table class="table-data">
+    <thead><tr><th>Materia Prima</th><th>Unidad Técnica</th><th class="text-center">Cant. Lotes</th><th>Fechas de Suministro</th><th class="text-right">Stock Consolidado</th></tr></thead>
+    <tbody>
+        {% for mp in datos_general.materias %}<tr><td style="vertical-align: top;">{{ mp.nombre_materia_prima }}</td><td style="vertical-align: top;">{{ mp.unidad_medida|default:"Ud" }}</td><td class="text-center" style="vertical-align: top;">{{ mp.lotes.count }}</td><td style="vertical-align: top;"><ul style="margin: 0; padding-left: 15px;">{% for lote in mp.lotes.all %}<li>{{ lote.fecha_ingreso|date:"d/m/Y" }}</li>{% endfor %}</ul></td><td class="text-right" style="vertical-align: top;">{% if mp.is_low_stock %}<strong style="color:red;">{{ mp.stock_total }}</strong>{% else %}{{ mp.stock_total }}{% endif %}</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">7. Proveedores Vigentes</h2>
+<table class="table-data">
+    <thead><tr><th>Nombre / Razón Social</th><th>Correo</th><th class="text-right">Contacto</th></tr></thead>
+    <tbody>
+        {% for pv in datos_general.proveedores %}<tr><td>{{ pv.nombre_proveedor }}</td><td>{{ pv.correo_electronico|default:"N/A" }}</td><td class="text-right">{{ pv.telefono|default:"N/A" }}</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<br>
+<h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">8. Reservas de Mesas</h2>
+<table class="table-data">
+    <thead><tr><th>Fecha Reservada</th><th>Cliente</th><th>Estado</th></tr></thead>
+    <tbody>
+        {% for r in datos_general.reservas %}<tr><td>{{ r.fecha|date:"d/m/Y H:i" }}</td><td>{{ r.cliente.nombre_completo|default:"N/A" }}</td><td>{% if r.estado %}Activa{% else %}Inactiva{% endif %}</td></tr>{% endfor %}
+    </tbody>
+</table>
+{% endblock %}

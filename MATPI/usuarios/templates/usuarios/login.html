@@ -223,7 +223,7 @@
                 
                 <div class="campo">
                     <label for="txt_id">Numero de documento</label>
-                    <input type="text" id="txt_id" name="txt_id" placeholder="Ingresa tu número de documento" required autofocus>
+                    <input type="text" id="txt_id" name="txt_id" placeholder="Ingresa tu número de documento" required autofocus oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 </div>
 
                 <div class="campo">

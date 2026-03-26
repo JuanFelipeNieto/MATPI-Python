@@ -14,9 +14,7 @@
             </form>
         </div>
         <div style="display: flex; gap: 10px;">
-            {% if es_admin %}
             <a href="{% url 'cocina' %}" target="_blank" class="btn btn-negro" style="background: #0d0d0d; color: #ff9f00; border: 1px solid #ff9f00;">📺 Pantalla Cocina</a>
-            {% endif %}
             <a href="{% url 'pedidos_pendientes' %}" class="btn btn-azul" style="background: #fff9f0; border: 1px solid #ff9f00; color: #e68a00;">🕒 Ver Pedidos en Preparación</a>
             <a href="{% url 'mostrar_registro_pedido' %}" class="btn btn-guardar">+ Nuevo Pedido</a>
         </div>

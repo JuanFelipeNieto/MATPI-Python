@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ titulo }}</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin-top: 4.5cm;
+            margin-bottom: 2cm;
+            margin-left: 1.5cm;
+            margin-right: 1.5cm;
+            @frame header_frame {
+                -pdf-frame-content: header_content;
+                left: 1.5cm; right: 1.5cm; top: 1cm; height: 3.5cm;
+            }
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 1.5cm; right: 1.5cm; bottom: 0.5cm; height: 1cm;
+            }
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            color: #333;
+        }
+        .header { text-align: center; margin-bottom: 20px; }
+        .title { color: #d4af37; font-size: 20px; font-weight: bold; margin: 0; padding: 0; }
+        .subtitle { color: #555; font-size: 12px; margin: 0; padding: 0; }
+        .table-data {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .table-data th {
+            background-color: #f4f4f4;
+            border-bottom: 2px solid #ccc;
+            padding: 6px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .table-data td {
+            border-bottom: 1px solid #eaeaea;
+            padding: 6px;
+            vertical-align: top;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+    </style>
+</head>
+<body>
+    <div id="header_content" class="header">
+        <h1 class="title">Reportes MATPI</h1>
+        <p class="subtitle">{{ titulo }}</p>
+        <p class="subtitle">Generado el: {{ fecha|date:"d/m/Y H:i" }} | Por: {{ vendedor }}</p>
+    </div>
+
+    <div id="footer_content" class="text-right" style="font-size: 9px; color: #777;">
+        Página <pdf:pagenumber> de <pdf:pagecount>
+    </div>
+
+    <div>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

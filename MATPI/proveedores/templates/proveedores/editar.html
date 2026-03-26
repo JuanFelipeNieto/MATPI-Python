@@ -30,7 +30,7 @@
 
         <div class="form-group">
             <label for="txt_telefono">Teléfono</label>
-            <input type="text" id="txt_telefono" name="txt_telefono" value="{{ proveedor.telefono|default:'' }}">
+            <input type="text" id="txt_telefono" name="txt_telefono" value="{{ proveedor.telefono|default:'' }}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
 
 

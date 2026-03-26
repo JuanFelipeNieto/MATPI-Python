@@ -16,7 +16,7 @@
             <select name="txt_materia_id" id="txt_materia_id" required>
                 <option value="" disabled selected>Seleccione la materia prima</option>
                 {% for materia in materias_primas %}
-                <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} ( {{ materia.stock_total|floatformat:0 }} {{ materia.unidad_medida }})</option>
+                <option value="{{ materia.id }}">{{ materia.nombre_materia_prima }} ( {{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }}.)</option>
                 {% endfor %}
             </select>
         </div>
@@ -49,4 +49,20 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // La fecha de vencimiento no puede ser menor a la fecha actual
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const formattedToday = `${yyyy}-${mm}-${dd}`;
+        
+        const inputFechaVencimiento = document.getElementById('txt_vencimiento');
+        if (inputFechaVencimiento) {
+            inputFechaVencimiento.min = formattedToday;
+        }
+    });
+</script>
 {% endblock %}

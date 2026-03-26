@@ -4,22 +4,22 @@
 <table class="table-data">
     <thead>
         <tr>
-            <th>ID / Documento</th>
             <th>Nombre Completo</th>
             <th>Correo Electrónico</th>
+            <th class="text-center">Pedidos {{ periodo_str|default:"del Rango" }}</th>
             <th class="text-right">Teléfono</th>
         </tr>
     </thead>
     <tbody>
         {% for u in datos %}
         <tr>
-            <td>{{ u.id }}</td>
-            <td>{{ u.nombre_completo }}</td>
-            <td>{{ u.correo_electronico }}</td>
-            <td class="text-right">{{ u.telefono }}</td>
+            <td>{{ u.usuario.nombre_completo }}</td>
+            <td>{{ u.usuario.correo_electronico }}</td>
+            <td class="text-center">{{ u.pedidos_periodo }}</td>
+            <td class="text-right">{{ u.usuario.telefono }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="text-center">No hay usuarios registrados.</td></tr>
+        <tr><td colspan="4" class="text-center">No hay cajeros registrados.</td></tr>
         {% endfor %}
     </tbody>
 </table>

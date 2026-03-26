@@ -27,6 +27,11 @@ class MateriaPrima(models.Model):
         return Decimal(total) if total is not None else Decimal(0)
 
     @property
+    def equivalencia_total(self):
+        """Calcula el stock total convertido a su unidad base."""
+        return self.stock_total * self.cantidad_por_unidad
+
+    @property
     def is_low_stock(self):
         """Devuelve True si el stock es 10 o menos."""
         return self.stock_total <= 10

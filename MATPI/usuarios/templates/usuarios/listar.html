@@ -16,7 +16,7 @@
                 <button type="submit" class="btn btn-guardar">Buscar</button>
             </form>
         </div>
-        <a href="{% url 'mostrar_registro_usuario' %}" class="btn btn-guardar">+ Nuevo Cajero</a>
+        <a href="{% url 'registrar_usuario' %}" class="btn btn-guardar">+ Nuevo Cajero</a>
     </div>
 
     <div class="table-responsive">
@@ -40,7 +40,7 @@
                     <td>{{ usuario.telefono }}</td>
                     <td>{{ usuario.estado }}</td>
                     <td class="acciones">
-                        <a href="{% url 'pre_editar_usuario' usuario.id %}" class="btn-editar">Editar</a>
+                        <a href="{% url 'editar_usuario' usuario.id %}" class="btn-editar">Editar</a>
                         <a href="{% url 'eliminar_usuario' usuario.id %}" class="btn-danger"
                             onclick="return confirm('¿Eliminar este usuario?')">Eliminar</a>
                     </td>

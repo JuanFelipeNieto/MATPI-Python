@@ -14,7 +14,7 @@
         <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
             <div class="form-group">
                 <label for="txt_id">Documento de Identidad</label>
-                <input type="text" id="txt_id" name="txt_id" placeholder="Número de documento" required>
+                <input type="text" id="txt_id" name="txt_id" placeholder="Número de documento" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
 
             <div class="form-group">
@@ -29,7 +29,7 @@
 
             <div class="form-group">
                 <label for="txt_telefono">Teléfono</label>
-                <input type="text" id="txt_telefono" name="txt_telefono" placeholder="Ej: 3001234567" required>
+                <input type="text" id="txt_telefono" name="txt_telefono" placeholder="Ej: 3001234567" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
 
             <div class="form-group">
@@ -139,4 +139,30 @@
         </div>
     </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const today = new Date();
+        
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const formattedToday = `${yyyy}-${mm}-${dd}`;
+        
+        // 1. Fecha de Ingreso: Por defecto hoy, mínimo hoy.
+        const inputFechaIngreso = document.getElementById('txt_fecha_ingreso');
+        if (inputFechaIngreso) {
+            inputFechaIngreso.value = formattedToday;
+            inputFechaIngreso.min = formattedToday;
+        }
+
+        // 2. Fecha de Nacimiento: Máximo hace 18 años.
+        const inputFechaNacimiento = document.getElementById('txt_fecha_nacimiento');
+        if (inputFechaNacimiento) {
+            const minYear = yyyy - 18;
+            const maxDateNacimiento = `${minYear}-${mm}-${dd}`;
+            inputFechaNacimiento.max = maxDateNacimiento;
+        }
+    });
+</script>
 {% endblock %}

@@ -28,7 +28,7 @@
 
         <div class="form-group">
             <label for="txt_telefono">Teléfono</label>
-            <input type="text" id="txt_telefono" name="txt_telefono" placeholder="Teléfono">
+            <input type="text" id="txt_telefono" name="txt_telefono" placeholder="Teléfono" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
 
 

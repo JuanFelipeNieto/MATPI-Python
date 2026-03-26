@@ -28,6 +28,11 @@
         </div>
 
         <div class="form-group">
+            <label for="txt_metodo_pago">Método de Pago</label>
+            <input type="text" id="txt_metodo_pago" readonly class="readonly-field" value="{{ pedido_seleccionado.metodo_pago|default:'—' }}">
+        </div>
+
+        <div class="form-group">
             <label for="txt_descripcion">Descripción</label>
             <textarea id="txt_descripcion" name="txt_descripcion" rows="3"
                 placeholder="Descripción opcional" readonly class="readonly-field">{% if descripcion_automatica %}{{ descripcion_automatica }}{% else %}{% if pedido_seleccionado %}Factura del Pedido #{{ pedido_seleccionado.id }}{% endif %}{% endif %}</textarea>
@@ -77,10 +82,12 @@
         if (pedido) {
             const totalConIva = Math.round((pedido.valor * 1.08) / 100) * 100;
             inputValor.value = totalConIva;
+            document.getElementById('txt_metodo_pago').value = pedido.metodo_pago || '—';
             btnEditar.href = `/pedidos/editar/${pedidoId}/`;
             btnEditar.style.display = 'inline-flex';
         } else {
             inputValor.value = 0;
+            document.getElementById('txt_metodo_pago').value = '—';
             btnEditar.style.display = 'none';
         }
     }
