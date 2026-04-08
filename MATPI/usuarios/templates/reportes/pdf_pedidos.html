@@ -1,6 +1,14 @@
 {% extends "reportes/base_pdf.html" %}
 
+
 {% block content %}
+{% if chart_base64 %}
+<div style="text-align: center; margin-bottom: 30px; border: 1px solid #eee; padding: 10px; border-radius: 8px;">
+    <h3 style="color: #333; margin-bottom: 10px;">Análisis Gráfico de Pedidos</h3>
+    <img src="data:image/png;base64,{{ chart_base64 }}" style="width: 100%; max-width: 700px; height: auto;">
+</div>
+{% endif %}
+
 <table class="table-data">
     <thead>
         <tr>

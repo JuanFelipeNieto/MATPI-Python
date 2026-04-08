@@ -2,7 +2,6 @@ import requests
 from django.core.cache import cache
 
 def obtener_localidades():
-    # sourcery skip: remove-unnecessary-else, swap-if-else-branches
    
     localidades = cache.get('lista_localidades_bogota')
     

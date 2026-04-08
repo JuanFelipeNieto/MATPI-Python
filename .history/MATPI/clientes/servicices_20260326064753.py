@@ -2,7 +2,6 @@ import requests
 from django.core.cache import cache
 
 def obtener_localidades():
-    # sourcery skip: remove-unnecessary-else, swap-if-else-branches
    
     localidades = cache.get('lista_localidades_bogota')
     
@@ -13,6 +12,7 @@ def obtener_localidades():
             if response.status_code == 200:
                 data = response.json()
                 
+                # Extraer nombres y limpiar
                 nombres = [feature['attributes']['LOCNOMBRE'] for feature in data.get('features', [])]
                 localidades = sorted(list(set(nombres))) # Eliminar duplicados y ordenar
                 cache.set('lista_localidades_bogota', localidades, 86400) # 24h

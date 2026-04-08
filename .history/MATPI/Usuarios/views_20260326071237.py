@@ -1,16 +1,10 @@
 import io
-import base64
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 from datetime import timedelta
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction, models
-from django.db.models import Sum, Count
-from django.db.models.functions import ExtractHour, ExtractWeekDay, ExtractDay
-from matplotlib.ticker import MaxNLocator
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.template.loader import get_template, TemplateDoesNotExist
 
@@ -236,59 +230,6 @@ def generar_pdf(template_src, contexto, nombre_archivo):
         return HttpResponse("Error: No se encontró la plantilla del reporte.", status=404)
     return HttpResponse("Error al generar PDF", status=500)
 
-
-def generar_grafica_pedidos(queryset, periodo):
-    """Genera una imagen base64 de una gráfica de barras según el periodo."""
-    from collections import Counter
-    
-    # Obtener lista de componentes (hora, día, etc.) en tiempo local
-    if periodo == 'diario':
-        datos_raw = [timezone.localtime(p.fecha).hour for p in queryset]
-        xlabel = 'Hora del Día'
-        title = 'Pedidos por Hora'
-        xticks = list(range(0, 24))
-        xticklabels = [f"{h}h" for h in xticks]
-    elif periodo == 'semanal':
-        # isoweekday(): 1=Lun, 2=Mar, ..., 7=Dom
-        datos_raw = [timezone.localtime(p.fecha).isoweekday() for p in queryset]
-        xlabel = 'Día de la Semana'
-        title = 'Pedidos por Día (Semana)'
-        xticks = list(range(1, 8))
-        xticklabels = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-    elif periodo == 'mensual':
-        datos_raw = [timezone.localtime(p.fecha).day for p in queryset]
-        xlabel = 'Día del Mes'
-        title = 'Pedidos por Día (Mes)'
-        xticks = list(range(1, 32))
-        xticklabels = [str(d) for d in xticks]
-    else:
-        return None
-
-    # Agrupar y contar frecuencias en Python
-    counts = Counter(datos_raw)
-    full_y_vals = [counts.get(x, 0) for x in xticks]
-
-    # Crear la gráfica con estilo premium
-    plt.figure(figsize=(10, 5))
-    plt.bar(xticks, full_y_vals, color='#FFD700', edgecolor='#B8860B', alpha=0.8)
-    plt.xlabel(xlabel, fontweight='bold')
-    plt.ylabel('Cantidad de Pedidos', fontweight='bold')
-    # Asegurar que el eje Y empiece en 0 y tenga un rango mínimo para números enteros
-    max_val = max(full_y_vals) if full_y_vals else 0
-    plt.ylim(0, max(max_val + 1, 5))
-    plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.title(title, fontsize=14, fontweight='bold', pad=20)
-    plt.xticks(xticks, xticklabels, rotation=45 if periodo == 'mensual' else 0)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.tight_layout()
-
-    # Guardar en buffer
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', dpi=120)
-    plt.close()
-    buf.seek(0)
-    return base64.b64encode(buf.read()).decode('utf-8')
-
 @login_requerido
 def reporte_modulo_pdf(request, modulo, periodo):
     from reportes.services import obtener_rango_fechas
@@ -335,18 +276,12 @@ def reporte_modulo_pdf(request, modulo, periodo):
         'general': 'en Total'
     }
 
-    # Generar gráfica solo para pedidos/ventas y periodos específicos
-    chart_base64 = None
-    if modulo in ['pedidos', 'ventas'] and periodo in ['diario', 'semanal', 'mensual']:
-        chart_base64 = generar_grafica_pedidos(qs, periodo)
-
     contexto = {
         'datos': qs,
         'titulo': titulo,
         'fecha': ahora,
         'vendedor': request.session.get('usuario_nombre'),
-        'periodo_str': periodo_map.get(periodo, 'del Periodo'),
-        'chart_base64': chart_base64
+        'periodo_str': periodo_map.get(periodo, 'del Periodo')
     }
     return generar_pdf(template_path, contexto, f"MATPI_{modulo}")
 

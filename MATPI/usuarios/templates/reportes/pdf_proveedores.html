@@ -1,22 +1,28 @@
-{% extends "reportes/base_pdf.html" %}
+﻿{% extends "reportes/base_pdf.html" %}
 
 {% block content %}
+{% if grafica_base64 %}
+<div style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
+    <h3 style="font-size: 14px; color: #333; margin-bottom: 5px;">Visualización de Datos - {{ periodo_str }}</h3>
+    <img src="{{ grafica_base64 }}" style="width: 500px; height: auto; border: 1px solid #eee; border-radius: 8px;">
+</div>
+<br>
+{% endif %}
+
 <table class="table-data">
     <thead>
         <tr>
-
-            <th>Nombre</th>
-            <th>Email de Contacto</th>
-            <th class="text-right">Teléfono</th>
+            <th>Nombre Proveedor</th>
+            <th>Correo Electrónico</th>
+            <th>Teléfono</th>
         </tr>
     </thead>
     <tbody>
-        {% for prov in datos %}
+        {% for pv in datos %}
         <tr>
-
-            <td>{{ prov.nombre_proveedor }}</td>
-            <td>{{ prov.correo_electronico|default:"N/A" }}</td>
-            <td class="text-right">{{ prov.telefono|default:"N/A" }}</td>
+            <td>{{ pv.nombre_proveedor }}</td>
+            <td>{{ pv.correo_electronico|default:"N/A" }}</td>
+            <td>{{ pv.telefono|default:"N/A" }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="3" class="text-center">No hay proveedores registrados.</td></tr>

@@ -1,27 +1,33 @@
-{% extends "reportes/base_pdf.html" %}
+﻿{% extends "reportes/base_pdf.html" %}
 
 {% block content %}
+{% if grafica_base64 %}
+<div style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
+    <h3 style="font-size: 14px; color: #333; margin-bottom: 5px;">Visualización de Datos - {{ periodo_str }}</h3>
+    <img src="{{ grafica_base64 }}" style="width: 500px; height: auto; border: 1px solid #eee; border-radius: 8px;">
+</div>
+<br>
+{% endif %}
+
 <table class="table-data">
     <thead>
         <tr>
-
-            <th>Nombre del Cliente</th>
+            <th>Nombre Completo</th>
+            <th>Teléfono</th>
             <th>Dirección</th>
             <th>Localidad</th>
-            <th class="text-right">Teléfono</th>
         </tr>
     </thead>
     <tbody>
         {% for c in datos %}
         <tr>
-
             <td>{{ c.nombre_completo }}</td>
+            <td>{{ c.telefono|default:"N/A" }}</td>
             <td>{{ c.direccion|default:"N/A" }}</td>
             <td>{{ c.localidad|default:"N/A" }}</td>
-            <td class="text-right">{{ c.telefono|default:"N/A" }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="4" class="text-center">No hay clientes registrados en el sistema.</td></tr>
+        <tr><td colspan="4" class="text-center">No hay clientes registrados en este periodo.</td></tr>
         {% endfor %}
     </tbody>
 </table>

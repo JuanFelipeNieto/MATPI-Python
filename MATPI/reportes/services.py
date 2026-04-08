@@ -18,7 +18,9 @@ def obtener_rango_fechas(periodo):
     """Retorna fecha_inicio y fecha_fin en base al periodo (semanal o mensual)."""
     ahora = timezone.now()
     if periodo == 'diario':
-        fecha_inicio = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
+        # Obtener inicio del día según la zona horaria local (Bogotá)
+        local_now = timezone.localtime(ahora)
+        fecha_inicio = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
     elif periodo == 'semanal':
         fecha_inicio = ahora - timedelta(days=7)
     elif periodo == 'mensual':
