@@ -19,9 +19,9 @@
 <br>
 <h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">1. Detalle de Pedidos</h2>
 <table class="table-data">
-    <thead><tr><th>Fecha</th><th>Método Pago</th><th class="text-right">Valor</th></tr></thead>
+    <thead><tr><th>Fecha</th><th>Registrado por</th><th>Método Pago</th><th class="text-right">Valor</th></tr></thead>
     <tbody>
-        {% for p in datos_general.pedidos %}<tr><td>{{ p.fecha|date:"d/m/Y H:i" }}</td><td>{{ p.metodo_pago }}</td><td class="text-right">${{ p.valor }}</td></tr>{% endfor %}
+        {% for p in datos_general.pedidos %}<tr><td>{{ p.fecha|date:"d/m/Y H:i" }}</td><td>{{ p.usuario.nombre_completo|default:"—" }}</td><td>{{ p.metodo_pago }}</td><td class="text-right">${{ p.valor }}</td></tr>{% endfor %}
     </tbody>
 </table>
 
@@ -37,9 +37,9 @@
 <br>
 <h2 style="font-size: 14px; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">3. Clientes Registrados</h2>
 <table class="table-data">
-    <thead><tr><th>Nombre</th><th>Teléfono</th><th>Dirección</th><th>Localidad</th></tr></thead>
+    <thead><tr><th>Nombre</th><th class="text-center">Total Pedidos</th><th>Registrado por</th><th>Teléfono</th><th>Dirección</th><th>Localidad</th></tr></thead>
     <tbody>
-        {% for c in datos_general.clientes %}<tr><td>{{ c.nombre_completo }}</td><td>{{ c.telefono|default:"N/A" }}</td><td>{{ c.direccion|default:"N/A" }}</td><td>{{ c.localidad|default:"N/A" }}</td></tr>{% endfor %}
+        {% for c in datos_general.clientes %}<tr><td>{{ c.nombre_completo }}</td><td class="text-center">{{ c.total_pedidos }}</td><td>{{ c.usuario.nombre_completo|default:"—" }}</td><td>{{ c.telefono|default:"N/A" }}</td><td>{{ c.direccion|default:"N/A" }}</td><td>{{ c.localidad|default:"N/A" }}</td></tr>{% endfor %}
     </tbody>
 </table>
 

@@ -47,7 +47,10 @@
         </div>
      
 
-        <button type="submit" class="btn btn-guardar">Actualizar</button>
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-guardar">💾 Actualizar</button>
+            <a href="{% url 'listar_materia_prima' %}" class="btn btn-cancelar">🔙 Volver al listado</a>
+        </div>
     </form>
 </div>
 

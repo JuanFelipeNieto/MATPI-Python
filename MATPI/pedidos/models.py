@@ -1,5 +1,5 @@
 from django.db import models
-from usuarios.models import Cajero
+from usuarios.models import Usuario
 from reservas.models import Reserva
 from clientes.models import Cliente
 from productos.models import Producto
@@ -7,7 +7,7 @@ from materia_prima.models import MateriaPrima
 
 
 class Pedido(models.Model):
-    """Pedido realizado por un cliente y atendido por un cajero."""
+    """Pedido realizado por un cliente y atendido por un usuario (Cajero o Admin)."""
 
     METODOS_PAGO = [
         ('Efectivo', 'Efectivo'),
@@ -18,21 +18,28 @@ class Pedido(models.Model):
         ('PSE', 'PSE'),
     ]
 
+    ESTADOS = [
+        ('Registrado', 'Registrado'),
+        ('Preparacion', 'En preparación'),
+        ('Completado', 'Completado'),
+        ('Cancelado', 'Cancelado'),
+    ]
+
     id = models.AutoField(primary_key=True)
     fecha = models.DateTimeField('Fecha y Hora', auto_now_add=True)
     fecha_entrega = models.DateTimeField('Fecha Entrega', null=True, blank=True)
-    estado = models.BooleanField('Estado', default=True)
+    estado = models.CharField('Estado', max_length=12, choices=ESTADOS, default='Registrado')
     valor = models.PositiveIntegerField('Valor Total')
     numero_orden = models.PositiveSmallIntegerField('Número de Orden')
     metodo_pago = models.CharField('Método de Pago', max_length=16, choices=METODOS_PAGO)
     
-    cajero = models.ForeignKey(
-        Cajero,
+    usuario = models.ForeignKey(
+        Usuario,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         db_column='ID_Usr',
-        verbose_name='Cajero',
+        verbose_name='Registrado por',
         related_name='pedidos'
     )
     reserva = models.ForeignKey(
@@ -106,6 +113,10 @@ class DetallePedidoProducto(models.Model):
         related_name='excluidas_en_pedidos'
     )
     notas = models.TextField('Notas/Modificaciones', max_length=255, blank=True, null=True)
+
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario
 
     class Meta:
         db_table = 'Details_Pedido_Producto'

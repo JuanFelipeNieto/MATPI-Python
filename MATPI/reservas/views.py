@@ -1,12 +1,18 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q
+from django.utils import timezone
+from django.contrib import messages
 import re
+from datetime import datetime
 from .models import Reserva
 from usuarios.models import Cajero
 from clientes.models import Cliente
 
 
 def listar_reservas(request):
+    # Auto-eliminación de reservas pasadas al acceder al listado
+    Reserva.objects.filter(fecha__lt=timezone.now()).delete()
+    
     buscar = request.GET.get('buscar', '')
     if buscar:
         reservas = Reserva.objects.filter(
@@ -26,7 +32,21 @@ def mostrar_registro_reserva(request):
 
 def registrar_reserva(request):
     if request.method == 'POST':
-        fecha         = request.POST.get('txt_fecha')
+        fecha_str     = request.POST.get('txt_fecha')
+        
+        # Validación de fecha futura
+        try:
+            fecha_dt = datetime.strptime(fecha_str, '%Y-%m-%dT%H:%M')
+            # Hacer consciente de zona horaria si es necesario
+            if timezone.is_naive(fecha_dt):
+                fecha_dt = timezone.make_aware(fecha_dt)
+                
+            if fecha_dt < timezone.now():
+                messages.error(request, "La fecha de reserva no puede ser anterior a la actual.")
+                return redirect('mostrar_registro_reserva')
+        except ValueError:
+            pass
+            
         estado        = request.POST.get('txt_estado', '1') == '1'
         observaciones = request.POST.get('txt_observaciones')
         cliente_text  = request.POST.get('txt_cliente_text')
@@ -50,7 +70,7 @@ def registrar_reserva(request):
         cliente = Cliente.objects.get(pk=cliente_id) if cliente_id else None
 
         Reserva.objects.create(
-            fecha=fecha,
+            fecha=fecha_dt,
             estado=estado,
             observaciones=observaciones,
             cliente=cliente,
@@ -69,7 +89,20 @@ def pre_editar_reserva(request, id):
 def editar_reserva(request):
     if request.method == 'POST':
         id            = request.POST.get('txt_id')
-        fecha         = request.POST.get('txt_fecha')
+        fecha_str     = request.POST.get('txt_fecha')
+        
+        # Validación de fecha futura
+        try:
+            fecha_dt = datetime.strptime(fecha_str, '%Y-%m-%dT%H:%M')
+            if timezone.is_naive(fecha_dt):
+                fecha_dt = timezone.make_aware(fecha_dt)
+                
+            if fecha_dt < timezone.now():
+                messages.error(request, "La fecha de reserva no puede ser anterior a la actual.")
+                return redirect('pre_editar_reserva', id=id)
+        except ValueError:
+            pass
+
         estado        = request.POST.get('txt_estado', '1') == '1'
         observaciones = request.POST.get('txt_observaciones')
         cliente_text  = request.POST.get('txt_cliente_text')
@@ -83,7 +116,7 @@ def editar_reserva(request):
         
         cliente = Cliente.objects.get(pk=cliente_id) if cliente_id else None
         reserva = Reserva.objects.get(pk=id)
-        reserva.fecha         = fecha
+        reserva.fecha         = fecha_dt
         reserva.estado        = estado
         reserva.observaciones = observaciones
         reserva.cliente       = cliente

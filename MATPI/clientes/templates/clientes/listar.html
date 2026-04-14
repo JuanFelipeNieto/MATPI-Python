@@ -35,6 +35,7 @@
                 <tr>
                     <th>Numero Documento</th>
                     <th>Nombre Completo</th>
+                    <th>Total Pedidos</th>
                     <th>Teléfono</th>
                     <th>Dirección</th>
                     <th>Localidad</th>
@@ -47,10 +48,11 @@
                 <tr>
                     <td>{{ cliente.id }}</td>
                     <td>{{ cliente.nombre_completo }}</td>
+                    <td>{{ cliente.total_pedidos }}</td>
                     <td>{{ cliente.telefono|default:"—" }}</td>
                     <td>{{ cliente.direccion|default:"—" }}</td>
                     <td>{{ cliente.localidad|default:"—" }}</td>
-                    <td>{{ cliente.cajero|default:"—" }}</td>
+                    <td>{{ cliente.usuario.nombre_completo|default:"—" }}</td>
                     <td class="acciones">
                         <a href="{% url 'pre_editar_cliente' cliente.id %}" class="btn-editar">Editar</a>
                         <a href="{% url 'eliminar_cliente' cliente.id %}" class="btn-danger"
@@ -59,7 +61,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" style="text-align:center;">No hay clientes registrados.</td>
+                    <td colspan="8" style="text-align:center;">No hay clientes registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>

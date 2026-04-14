@@ -27,7 +27,7 @@
             </div>
             <div>
                 <label style="color: #64748b; font-size: 0.85rem; display: block; margin-bottom: 5px;">Cajero responsable</label>
-                <p style="font-weight: 600; font-size: 1.1rem;">{{ pedido.cajero|default:"Sistema" }}</p>
+                <p style="font-weight: 600; font-size: 1.1rem;">{{ pedido.usuario.nombre_completo|default:"Sistema" }}</p>
             </div>
         </div>
     </div>
@@ -51,7 +51,7 @@
                         <small style="color: #64748b;">$ {{ detalle.producto.precio_productov }} unit.</small>
                     </td>
                     <td>{{ detalle.cantidad }}</td>
-                    <td style="font-weight: bold;">$ {{ detalle.obtener_subtotal }}</td>
+                    <td style="font-weight: bold;">$ {{ detalle.subtotal }}</td>
                     <td>
                         {% if detalle.notas %}
                             <div style="margin-bottom: 5px;">📝 {{ detalle.notas }}</div>
@@ -81,7 +81,7 @@
     </div>
 
     <div style="margin-top: 30px; display: flex; gap: 15px;">
-        <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar" style="flex: 1; text-align: center;">Volver al listado</a>
+        <a href="{% url 'listar_pedidos' %}" class="btn btn-cancelar" style="flex: 1; text-align: center;">🔙 Volver al listado</a>
         {% if es_admin %}
             <!-- El usuario puede querer editar desde aquí también si es admin -->
              <!-- Pero el usuario pidió quitar el botón de editar del listado. 

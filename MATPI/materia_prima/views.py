@@ -13,6 +13,37 @@ def check_admin(request):
     id_sesion = request.session.get('usuario_id')
     return Administrador.objects.filter(usuario_id=id_sesion).exists()
 
+# Función auxiliar para obtener un lote por ID
+def get_lote_or_404(id_lote):
+    return get_object_or_404(Lote, pk=id_lote)
+
+# Función auxiliar para obtener materia prima por ID del POST
+def get_materia_prima_from_post(post_data):
+    id_materia = post_data.get('txt_id')
+    return get_object_or_404(MateriaPrima, pk=id_materia)
+
+# Función auxiliar para extraer datos de materia prima del POST
+def extract_materia_prima_data(post_data):
+    return {
+        'nombre': post_data.get('txt_nombre'),
+        'unidad': post_data.get('txt_unidad'),
+        'cantidad_unidad': int(post_data.get('txt_cantidad_unidad', 1)),
+        'tipo': post_data.get('txt_tipo', 'Comida'),
+        'cantidad': int(post_data.get('txt_cantidad', 0)),
+        'f_ingreso': post_data.get('txt_fecha_ingreso')
+    }
+
+# Función auxiliar para desempacar datos de materia prima
+def unpack_materia_prima_data(data):
+    return (
+        data['nombre'],
+        data['unidad'],
+        data['cantidad_unidad'],
+        data['tipo'],
+        data['cantidad'],
+        data['f_ingreso']
+    )
+
 # --- VISTA PRINCIPAL (LISTADO) ---
 
 def listar_materia_prima(request):
@@ -59,12 +90,8 @@ def registrar_materia_prima(request):
         return redirect('listar_materia_prima')
 
     if request.method == 'POST':
-        nombre = request.POST.get('txt_nombre')
-        unidad = request.POST.get('txt_unidad')
-        cantidad_unidad = int(request.POST.get('txt_cantidad_unidad', 1))
-        tipo = request.POST.get('txt_tipo', 'Comida')
-        cantidad = int(request.POST.get('txt_cantidad', 0))
-        f_ingreso = request.POST.get('txt_fecha_ingreso')
+        data = extract_materia_prima_data(request.POST)
+        nombre, unidad, cantidad_unidad, tipo, cantidad, f_ingreso = unpack_materia_prima_data(data)
 
         try:
             with transaction.atomic():
@@ -112,8 +139,7 @@ def editar_materia_prima(request):
         return redirect('listar_materia_prima')
 
     if request.method == 'POST':
-        id_materia = request.POST.get('txt_id')
-        materia = get_object_or_404(MateriaPrima, pk=id_materia)
+        materia = get_materia_prima_from_post(request.POST)
         
         materia.nombre_materia_prima = request.POST.get('txt_nombre')
         materia.unidad_medida        = request.POST.get('txt_unidad')
@@ -131,8 +157,18 @@ def eliminar_materia_prima(request, id):
         return redirect('listar_materia_prima')
 
     materia = get_object_or_404(MateriaPrima, pk=id)
+    
+    # Identificar productos afectados antes de eliminar
+    productos_afectados = [detalle.producto for detalle in materia.detalles_producto.all()]
+    
     materia.delete()
-    messages.success(request, "Materia prima eliminada correctamente.")
+    
+    # Recalcular cada producto afectado para actualizar stock y descripción automática
+    from productos.views import recalcular_stock_producto
+    for producto in productos_afectados:
+        recalcular_stock_producto(producto)
+        
+    messages.success(request, "Materia prima eliminada correctamente y productos actualizados.")
     return redirect('listar_materia_prima')
 
 
@@ -159,7 +195,7 @@ def pre_editar_lote(request, id_lote):
         messages.error(request, "Acceso denegado. Solo administradores pueden editar lotes.")
         return redirect('listar_materia_prima')
         
-    lote = get_object_or_404(Lote, pk=id_lote)
+    lote = get_lote_or_404(id_lote)
     return render(request, 'materia_prima/editar_lote.html', {
         'lote': lote,
         'es_admin': True
@@ -172,7 +208,7 @@ def editar_lote(request):
 
     if request.method == 'POST':
         id_lote = request.POST.get('txt_id')
-        lote = get_object_or_404(Lote, pk=id_lote)
+        lote = get_lote_or_404(id_lote)
         
         lote.cantidad_actual = int(request.POST.get('txt_cantidad', 0))
         lote.fecha_vencimiento = request.POST.get('txt_fecha_vencimiento') or None
@@ -188,7 +224,7 @@ def eliminar_lote(request, id_lote):
         messages.error(request, "Permiso denegado.")
         return redirect('listar_materia_prima')
 
-    lote = get_object_or_404(Lote, pk=id_lote)
+    lote = get_lote_or_404(id_lote)
     id_materia = lote.materia_prima.id
     lote.delete()
     
@@ -196,7 +232,6 @@ def eliminar_lote(request, id_lote):
     return redirect('ver_lotes', id_materia=id_materia)
 
 
-# --- IMPORTACIÓN MASIVA DESDE EXCEL ---
 
 def importar_materia_prima_excel(request):
     if not check_admin(request):
@@ -205,20 +240,53 @@ def importar_materia_prima_excel(request):
 
     if request.method == 'POST' and request.FILES.get('archivo_excel'):
         archivo = request.FILES['archivo_excel']
+        
+        # Validar extensión
+        if not archivo.name.endswith('.xlsx'):
+            messages.error(request, "Solo se permiten archivos .xlsx")
+            return redirect('importar_materia_prima_excel')
+
         try:
             wb = openpyxl.load_workbook(archivo)
             sheet = wb.active
             
-            creados = 0
-            errores = []
+            rows = list(sheet.iter_rows(min_row=2, values_only=True))
             
-            # Suponiendo que la primera fila es encabezado
-            # Columnas: A:Nombre, B:Unidad, C:Cant x Unidad, D:Tipo
-            for row in sheet.iter_rows(min_row=2, values_only=True):
+            # 1. Verificar si hay datos válidos y duplicados
+            for row in rows:
+                if len(row) < 4:
+                    messages.error(request, "Los datos no son válidos")
+                    return redirect('importar_materia_prima_excel')
+                
                 nombre, unidad, cant_unidad, tipo = row[:4]
                 if not nombre: continue
                 
+                # Validar tipos de datos
                 try:
+                    cant_unidad = int(cant_unidad or 1)
+                except (ValueError, TypeError):
+                    messages.error(request, "Los datos no son válidos")
+                    return redirect('importar_materia_prima_excel')
+                
+                unidad = unidad or 'und'
+                tipo = tipo or 'Comida'
+
+                if MateriaPrima.objects.filter(
+                    nombre_materia_prima__iexact=nombre,
+                    unidad_medida__iexact=unidad,
+                    cantidad_por_unidad=cant_unidad,
+                    tipo=tipo
+                ).exists():
+                    messages.error(request, "No se puede importar el archivo debido a que los datos ya existen o ya fueron ingresados")
+                    return redirect('listar_materia_prima')
+
+            # 2. Si no hay duplicados y todo es válido, importar
+            creados = 0
+            with transaction.atomic():
+                for row in rows:
+                    nombre, unidad, cant_unidad, tipo = row[:4]
+                    if not nombre: continue
+                    
                     MateriaPrima.objects.create(
                         nombre_materia_prima=nombre,
                         unidad_medida=unidad or 'und',
@@ -226,13 +294,9 @@ def importar_materia_prima_excel(request):
                         tipo=tipo or 'Comida'
                     )
                     creados += 1
-                except Exception as e:
-                    errores.append(f"Error en fila {nombre}: {str(e)}")
             
             if creados > 0:
                 messages.success(request, f"Se importaron {creados} materias primas correctamente.")
-            if errores:
-                messages.warning(request, f"Hubo errores en {len(errores)} filas.")
                 
         except Exception as e:
             messages.error(request, f"Error al procesar el archivo: {str(e)}")
@@ -249,75 +313,98 @@ def importar_lotes_excel(request):
 
     if request.method == 'POST' and request.FILES.get('archivo_excel'):
         archivo = request.FILES['archivo_excel']
+
+        # Validar extensión
+        if not archivo.name.endswith('.xlsx'):
+            messages.error(request, "Solo se permiten archivos .xlsx")
+            return redirect('importar_lotes_excel')
+
         try:
             wb = openpyxl.load_workbook(archivo)
             sheet = wb.active
             
-            creados = 0
-            errores = []
-            
-            # Columnas: A:Nombre Materia Prima, B:Cantidad, C:Fecha Vencimiento (opcional), D:Precio (opcional)
-            for row_idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+            rows = list(sheet.iter_rows(min_row=2, values_only=True))
+            lotes_a_crear = []
+
+            # 1. Validación de tipos, existencia de materias y duplicados
+            for row_idx, row in enumerate(rows, start=2):
+                if len(row) < 2:
+                    messages.error(request, "Los datos no son válidos")
+                    return redirect('importar_lotes_excel')
+
                 nombre_completo, cantidad, f_vencimiento, precio = row[:4]
-                if not nombre_completo or not cantidad: continue
+                if not nombre_completo or cantidad is None: continue
                 
+                # Validar tipos numéricos
+                try:
+                    cantidad = float(cantidad)
+                    if precio is not None:
+                        precio = float(precio)
+                except (ValueError, TypeError):
+                    messages.error(request, "Los datos no son válidos")
+                    return redirect('importar_lotes_excel')
+
                 nombre_completo = str(nombre_completo).strip()
                 materia = None
                 
-                try:
-                    # 1. Intentar coincidencia exacta con el nombre completo
-                    materia = MateriaPrima.objects.filter(nombre_materia_prima__iexact=nombre_completo).first()
-                    
-                    if not materia:
-                        # 2. Intentar parsear el formato "Nombre (Equivalencia Unidad)"
-                        # Ejemplo: "Carne de hamburguesa (150 gr)"
-                        match = re.match(r"^(.*?)\s*\(([\d.,]+)\s+(.*)\)$", nombre_completo)
-                        
-                        if match:
-                            nombre_base = match.group(1).strip()
-                            equiv_str = match.group(2).replace(',', '.')
-                            unidad_str = match.group(3).strip()
-                            
-                            try:
-                                equiv_int = int(float(equiv_str))
-                                materia = MateriaPrima.objects.filter(
-                                    nombre_materia_prima__iexact=nombre_base,
-                                    cantidad_por_unidad=equiv_int,
-                                    unidad_medida__iexact=unidad_str
-                                ).first()
-                            except (ValueError, TypeError):
-                                pass
-                    
-                    if not materia:
-                        errores.append(f"Fila {row_idx}: Materia prima '{nombre_completo}' no encontrada.")
-                        continue
-                    
-                    # Validar fecha si viene como string o datetime
-                    if isinstance(f_vencimiento, str):
+                materia = MateriaPrima.objects.filter(nombre_materia_prima__iexact=nombre_completo).first()
+                if not materia:
+                    if match := re.match(r"^(.*?)\s*\(([\d.,]+)\s+(.*)\)$", nombre_completo):
+                        nombre_base = match.group(1).strip()
+                        equiv_str = match.group(2).replace(',', '.')
+                        unidad_str = match.group(3).strip()
                         try:
-                            f_vencimiento = datetime.strptime(f_vencimiento, '%Y-%m-%d').date()
-                        except:
-                            f_vencimiento = None
-                    
-                    Lote.objects.create(
-                        materia_prima=materia,
-                        cantidad_inicial=int(cantidad),
-                        cantidad_actual=int(cantidad),
-                        fecha_ingreso=timezone.now(),
-                        fecha_vencimiento=f_vencimiento,
-                        precio_unidad=precio
-                    )
-                    creados += 1
-                except Exception as e:
-                    errores.append(f"Error en lote para {nombre_completo}: {str(e)}")
-            
-            if creados > 0:
-                messages.success(request, f"Se importaron {creados} lotes correctamente.")
-            if errores:
-                for error in errores[:5]: # Mostrar los primeros 5 errores
-                    messages.warning(request, error)
-                if len(errores) > 5:
-                    messages.warning(request, f"...y {len(errores)-5} errores más.")
+                            equiv_int = int(float(equiv_str))
+                            materia = MateriaPrima.objects.filter(
+                                nombre_materia_prima__iexact=nombre_base,
+                                cantidad_por_unidad=equiv_int,
+                                unidad_medida__iexact=unidad_str
+                            ).first()
+                        except: pass
+                
+                if not materia:
+                    messages.error(request, f"Error en fila {row_idx}: Materia prima '{nombre_completo}' no encontrada.")
+                    return redirect('importar_lotes_excel')
+
+                # Validar fecha
+                if isinstance(f_vencimiento, str):
+                    try:
+                        f_vencimiento = datetime.strptime(f_vencimiento, '%Y-%m-%d').date()
+                    except:
+                        f_vencimiento = None
+                elif isinstance(f_vencimiento, datetime):
+                    f_vencimiento = f_vencimiento.date()
+
+                # VERIFICAR DUPLICADO EN DB
+                if Lote.objects.filter(
+                    materia_prima=materia,
+                    cantidad_inicial=cantidad,
+                    fecha_vencimiento=f_vencimiento,
+                    precio_unidad=precio
+                ).exists():
+                    messages.error(request, "el lote ya existe")
+                    return redirect('listar_materia_prima')
+
+                lotes_a_crear.append({
+                    'materia_prima': materia,
+                    'cantidad_inicial': cantidad,
+                    'fecha_vencimiento': f_vencimiento,
+                    'precio_unidad': precio
+                })
+
+            # 2. Si todo es válido, crear los lotes
+            if lotes_a_crear:
+                with transaction.atomic():
+                    for data in lotes_a_crear:
+                        Lote.objects.create(
+                            materia_prima=data['materia_prima'],
+                            cantidad_inicial=data['cantidad_inicial'],
+                            cantidad_actual=data['cantidad_inicial'],
+                            fecha_ingreso=timezone.now(),
+                            fecha_vencimiento=data['fecha_vencimiento'],
+                            precio_unidad=data['precio_unidad']
+                        )
+                messages.success(request, f"Se importaron {len(lotes_a_crear)} lotes correctamente.")
                 
         except Exception as e:
             messages.error(request, f"Error al procesar el archivo: {str(e)}")
@@ -325,3 +412,4 @@ def importar_lotes_excel(request):
         return redirect('listar_materia_prima')
         
     return render(request, 'materia_prima/importar_lotes.html')
+

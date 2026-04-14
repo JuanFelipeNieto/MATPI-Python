@@ -146,10 +146,8 @@
                 </div>
                 <div class="form-group">
                     <label for="txt_estado">Estado de Orden</label>
-                    <select id="txt_estado" name="txt_estado">
-                        <option value="1" {% if pedido.estado %}selected{% endif %}>Activo (En preparación)</option>
-                        <option value="0" {% if not pedido.estado %}selected{% endif %}>Completado (Entregado)</option>
-                    </select>
+                    <input type="text" id="txt_estado_display" value="{% if pedido.estado == 'Preparacion' %}En preparación{% elif pedido.estado == 'Completado' %}Completado{% else %}{{ pedido.estado }}{% endif %}" readonly class="readonly-field">
+                    <input type="hidden" name="txt_estado" value="{{ pedido.estado }}">
                 </div>
                 <input type="hidden" name="txt_cajero" value="{{ pedido.cajero_id|default:'' }}">
             </div>
@@ -432,6 +430,16 @@
     }
 
     document.getElementById('order-form').onsubmit = function(e) {
+        // 1. Validar que si se escribió un nombre, este exista en la lista (ID presente)
+        const clienteId = document.getElementById('txt_cliente_id').value;
+        const clienteNombre = document.getElementById('txt_cliente_search').value;
+        
+        if (clienteNombre && !clienteId) {
+            alert("No se puede actualizar el pedido: El cliente '" + clienteNombre + "' no existe. Selecciónelo de la lista o regístrelo primero.");
+            e.preventDefault();
+            return false;
+        }
+
         const filas = document.querySelectorAll('.fila-producto');
         let error = false;
         let msg = "";

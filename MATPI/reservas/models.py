@@ -8,6 +8,7 @@ class Reserva(models.Model):
 
     id = models.AutoField(primary_key=True)
     fecha = models.DateTimeField('Fecha y Hora')
+    fecha_registro = models.DateTimeField('Fecha de Registro', auto_now_add=True, null=True, blank=True)
     estado = models.BooleanField('Estado', default=True)
     observaciones = models.TextField('Observaciones', max_length=255, blank=True, null=True)
     cliente = models.ForeignKey(

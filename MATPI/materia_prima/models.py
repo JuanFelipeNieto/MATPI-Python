@@ -41,6 +41,20 @@ class MateriaPrima(models.Model):
         """Devuelve True si el stock es 0."""
         return self.stock_total <= 0
 
+    @property
+    def lote_activo(self):
+        """Devuelve el lote más antiguo con stock disponible (el que se está consumiendo actualmente)."""
+        return self.lotes.filter(cantidad_actual__gt=0).first()
+
+    @property
+    def is_insumo_vencido(self):
+        """Devuelve True si el lote activo ya venció."""
+        from django.utils import timezone
+        lote = self.lote_activo
+        if lote and lote.fecha_vencimiento:
+            return lote.fecha_vencimiento <= timezone.localtime().date()
+        return False
+
     def __str__(self):
         return f'{self.nombre_materia_prima} ({self.unidad_medida})'
 

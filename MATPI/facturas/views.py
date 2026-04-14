@@ -13,7 +13,7 @@ def listar_facturas(request):
 
 
 def mostrar_registro_factura(request):
-    pedidos = Pedido.objects.all()
+    pedidos = Pedido.objects.filter(estado='Registrado')
     
     # Calcular próximo ID de factura
     max_id = Factura.objects.aggregate(Max('id'))['id__max'] or 0
@@ -22,6 +22,8 @@ def mostrar_registro_factura(request):
     # Pre-llenado desde Pedido si viene por parámetro
     pedido_id = request.GET.get('pedido_id')
     valor_con_iva = 0
+    pedido_seleccionado = None
+    descripcion_automatica = ""
     if pedido_id:
         pedido_seleccionado = Pedido.objects.filter(pk=pedido_id).first()
         if pedido_seleccionado:
@@ -51,13 +53,18 @@ def registrar_factura(request):
         
         pedido = Pedido.objects.get(pk=pedido_id) if pedido_id else None
         
-        Factura.objects.create(
+        factura_obj = Factura.objects.create(
             id=id_factura,
             valor_total=valor_total,
             descripcion=descripcion,
             iva=iva,
             pedido=pedido,
         )
+
+        if pedido:
+            pedido.estado = 'Preparacion'
+            pedido.save()
+
         return redirect('listar_facturas')
     return redirect('mostrar_registro_factura')
 

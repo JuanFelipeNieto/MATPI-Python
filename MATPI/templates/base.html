@@ -126,15 +126,38 @@
                     <div style="padding: 12px 15px; background: #f8f9fa; border-bottom: 1px solid #eee; font-weight: bold; color: #2c3e50; font-size: 0.9rem;">
                         Notificaciones ({{ notificaciones_count }})
                     </div>
-                    <div style="max-height: 300px; overflow-y: auto;">
-                        {% if materias_bajas %}
-                            {% for mp in materias_bajas %}
-                            <div style="padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 5px; transition: background 0.2s;">
-                                <span style="font-size: 0.85rem; color: #333;">⚠️ <strong>{{ mp.nombre_materia_prima }}</strong> - Stock: {{ mp.stock_total|floatformat:0 }}</span>
-                                <a href="{% url 'ver_lotes' mp.id %}" style="align-self: flex-start; font-size: 0.75rem; color: #e74c3c; text-decoration: none; font-weight: bold;">Gestionar Inventario →</a>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {% if lotes_vencidos %}
+                            {% for lote in lotes_vencidos %}
+                            <div style="padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 5px; background: #fff5f5;">
+                                <span style="font-size: 0.85rem; color: #c0392b;">🔴 <strong>VENCIDO: {{ lote.materia_prima.nombre_materia_prima }}</strong></span>
+                                <span style="font-size: 0.75rem; color: #666;">Lote #{{ lote.id }} venció el {{ lote.fecha_vencimiento|date:"d/m/Y" }}</span>
+                                <a href="{% url 'ver_lotes' lote.materia_prima.id %}" style="align-self: flex-start; font-size: 0.75rem; color: #e74c3c; text-decoration: none; font-weight: bold;">Gestionar Lote →</a>
                             </div>
                             {% endfor %}
-                        {% else %}
+                        {% endif %}
+
+                        {% if lotes_por_vencer %}
+                            {% for lote in lotes_por_vencer %}
+                            <div style="padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 5px; background: #fffdf0;">
+                                <span style="font-size: 0.85rem; color: #d35400;">🕒 <strong>POR VENCER: {{ lote.materia_prima.nombre_materia_prima }}</strong></span>
+                                <span style="font-size: 0.75rem; color: #666;">Vence pronto: {{ lote.fecha_vencimiento|date:"d/m/Y" }}</span>
+                                <a href="{% url 'ver_lotes' lote.materia_prima.id %}" style="align-self: flex-start; font-size: 0.75rem; color: #f39c12; text-decoration: none; font-weight: bold;">Gestionar Lote →</a>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if materias_bajas %}
+                            {% for mp in materias_bajas %}
+                            <div style="padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 5px;">
+                                <span style="font-size: 0.85rem; color: #333;">⚠️ <strong>STOCK BAJO: {{ mp.nombre_materia_prima }}</strong></span>
+                                <span style="font-size: 0.75rem; color: #666;">Cantidad: {{ mp.stock_total|floatformat:0 }} {{ mp.unidad_medida }}</span>
+                                <a href="{% url 'ver_lotes' mp.id %}" style="align-self: flex-start; font-size: 0.75rem; color: #2c3e50; text-decoration: none; font-weight: bold;">Gestionar Inventario →</a>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if not lotes_vencidos and not lotes_por_vencer and not materias_bajas %}
                             <div style="padding: 20px; text-align: center; color: #7f8c8d; font-size: 0.85rem;">
                                 No hay notificaciones nuevas.
                             </div>

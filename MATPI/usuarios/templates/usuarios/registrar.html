@@ -14,12 +14,12 @@
         <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
             <div class="form-group">
                 <label for="txt_id">Documento de Identidad</label>
-                <input type="text" id="txt_id" name="txt_id" placeholder="Número de documento" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <input type="text" id="txt_id" name="txt_id" placeholder="Número de documento" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
 
             <div class="form-group">
                 <label for="txt_nombre">Nombre Completo</label>
-                <input type="text" id="txt_nombre" name="txt_nombre" placeholder="Nombre completo" required>
+                <input type="text" id="txt_nombre" name="txt_nombre" placeholder="Nombre completo" required oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
             </div>
 
             <div class="form-group">
@@ -86,7 +86,7 @@
                 <input type="date" id="txt_fecha_ingreso" name="txt_fecha_ingreso" required>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="group_fecha_terminacion" style="display: none;">
                 <label for="txt_fecha_terminacion">Fecha Terminación Contrato</label>
                 <input type="date" id="txt_fecha_terminacion" name="txt_fecha_terminacion">
                 <small style="color: #888;">Sólo si es contrato fijo.</small>
@@ -103,17 +103,17 @@
         <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
             <div class="form-group">
                 <label for="txt_emergencia_nombre">Nombre Completo</label>
-                <input type="text" id="txt_emergencia_nombre" name="txt_emergencia_nombre" placeholder="Nombre del contacto" required>
+                <input type="text" id="txt_emergencia_nombre" name="txt_emergencia_nombre" placeholder="Nombre al contacto" required oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
             </div>
 
             <div class="form-group">
                 <label for="txt_emergencia_parentesco">Parentesco / Relación</label>
-                <input type="text" id="txt_emergencia_parentesco" name="txt_emergencia_parentesco" placeholder="Ej: Madre, Esposo" required>
+                <input type="text" id="txt_emergencia_parentesco" name="txt_emergencia_parentesco" placeholder="Ej: Madre, Esposo" required oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
             </div>
 
             <div class="form-group">
                 <label for="txt_emergencia_numero">Número de Teléfono</label>
-                <input type="text" id="txt_emergencia_numero" name="txt_emergencia_numero" placeholder="Teléfono de emergencia" required>
+                <input type="text" id="txt_emergencia_numero" name="txt_emergencia_numero" placeholder="Teléfono de emergencia" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
         </div>
 
@@ -143,7 +143,6 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const today = new Date();
-        
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
@@ -151,9 +150,20 @@
         
         // 1. Fecha de Ingreso: Por defecto hoy, mínimo hoy.
         const inputFechaIngreso = document.getElementById('txt_fecha_ingreso');
+        const selectEstado = document.getElementById('txt_estado');
+        
+        function updateEstadoByFecha() {
+            if (inputFechaIngreso.value === formattedToday) {
+                selectEstado.value = 'Activo';
+            } else if (inputFechaIngreso.value > formattedToday) {
+                selectEstado.value = 'Inactivo';
+            }
+        }
+
         if (inputFechaIngreso) {
             inputFechaIngreso.value = formattedToday;
             inputFechaIngreso.min = formattedToday;
+            inputFechaIngreso.addEventListener('change', updateEstadoByFecha);
         }
 
         // 2. Fecha de Nacimiento: Máximo hace 18 años.
@@ -162,6 +172,23 @@
             const minYear = yyyy - 18;
             const maxDateNacimiento = `${minYear}-${mm}-${dd}`;
             inputFechaNacimiento.max = maxDateNacimiento;
+        }
+
+        // 3. Mostrar/Ocultar fecha de terminación
+        const selectContrato = document.getElementById('txt_tipo_contrato');
+        const groupFechaTerminacion = document.getElementById('group_fecha_terminacion');
+
+        function toggleFechaTerminacion() {
+            if (selectContrato.value === 'Fijo') {
+                groupFechaTerminacion.style.display = 'block';
+            } else {
+                groupFechaTerminacion.style.display = 'none';
+            }
+        }
+
+        if (selectContrato) {
+            selectContrato.addEventListener('change', toggleFechaTerminacion);
+            toggleFechaTerminacion(); // Ejecutar al cargar
         }
     });
 </script>

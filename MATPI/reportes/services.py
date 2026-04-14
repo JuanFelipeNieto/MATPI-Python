@@ -35,7 +35,7 @@ def obtener_contexto_general(periodo):
     """Retorna un diccionario con los datos agregados y detallados para el reporte general."""
     fecha_inicio, fecha_fin = obtener_rango_fechas(periodo)
     
-    pedidos = Pedido.objects.filter(fecha__gte=fecha_inicio, fecha__lte=fecha_fin, estado=False)
+    pedidos = Pedido.objects.filter(fecha__gte=fecha_inicio, fecha__lte=fecha_fin, estado__in=['Preparacion', 'Completado'])
     total_ingresos = pedidos.aggregate(Sum('valor'))['valor__sum'] or 0
     total_pedidos = pedidos.count()
     metodos_pago = pedidos.values('metodo_pago').annotate(total=Sum('valor'), cantidad=Count('id'))
@@ -58,10 +58,10 @@ def obtener_contexto_general(periodo):
         # Desglose detallado
         'pedidos': pedidos.order_by('-fecha'),
         'productos': Producto.objects.all(),
-        'clientes': Cliente.objects.all(),
-        'usuarios': Usuario.objects.filter(estado='Activo', cajero__isnull=False).annotate(
-            pedidos_totales=Count('cajero__pedidos', filter=Q(cajero__pedidos__estado=False)),
-            pedidos_periodo=Count('cajero__pedidos', filter=Q(cajero__pedidos__estado=False, cajero__pedidos__fecha__gte=fecha_inicio, cajero__pedidos__fecha__lte=fecha_fin))
+        'clientes': Cliente.objects.annotate(total_pedidos=Count('pedidos')).all(),
+        'usuarios': Usuario.objects.filter(estado='Activo').annotate(
+            pedidos_totales=Count('pedidos', filter=Q(pedidos__estado__in=['Preparacion', 'Completado'])),
+            pedidos_periodo=Count('pedidos', filter=Q(pedidos__estado__in=['Preparacion', 'Completado'], pedidos__fecha__gte=fecha_inicio, pedidos__fecha__lte=fecha_fin))
         ).distinct(),
         'facturas': Factura.objects.filter(pedido__fecha__gte=fecha_inicio, pedido__fecha__lte=fecha_fin).select_related('pedido'),
         'materias': MateriaPrima.objects.all(),
@@ -91,9 +91,9 @@ def generar_csv_general(periodo):
     
     # 2. Pedidos
     writer.writerow(['--- DETALLE DE PEDIDOS ---'])
-    writer.writerow(['ID', 'Fecha', 'Método Pago', 'Valor', 'Cajero'])
+    writer.writerow(['ID', 'Fecha', 'Método Pago', 'Valor', 'Usuario Nombre'])
     for p in ctx['pedidos']:
-        writer.writerow([p.id, p.fecha.strftime('%Y-%m-%d %H:%M'), p.metodo_pago, p.valor, p.cajero])
+        writer.writerow([p.id, p.fecha.strftime('%Y-%m-%d %H:%M'), p.metodo_pago, p.valor, p.usuario.nombre_completo])
     writer.writerow([])
         
     # 3. Productos
@@ -105,9 +105,9 @@ def generar_csv_general(periodo):
 
     # 4. Clientes
     writer.writerow(['--- DETALLE DE CLIENTES ---'])
-    writer.writerow(['Documento', 'Nombre', 'Teléfono', 'Dirección', 'Localidad'])
+    writer.writerow(['Documento', 'Nombre', 'Total Pedidos', 'Registrado por', 'Teléfono', 'Dirección', 'Localidad'])
     for c in ctx['clientes']:
-        writer.writerow([c.id, c.nombre_completo, c.telefono, c.direccion, c.localidad])
+        writer.writerow([c.id, c.nombre_completo, c.total_pedidos, c.usuario.nombre_completo if c.usuario else '—', c.telefono, c.direccion, c.localidad])
     writer.writerow([])
 
     # 5. Usuarios

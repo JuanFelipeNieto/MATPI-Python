@@ -166,8 +166,11 @@
                                     <option value="">— Seleccione Producto —</option>
                                     {% for producto in productos %}
                                         {% if producto.categoria != 'Bebidas' %}
-                                        <option value="{{ producto.id }}" data-precio="{{ producto.precio }}" data-composicion='{{ producto.composicion_json|safe }}'>
-                                            {{ producto.nombre_producto }}
+                                        <option value="{{ producto.id }}" 
+                                                data-precio="{{ producto.precio }}" 
+                                                data-composicion='{{ producto.composicion_json|safe }}'
+                                                {% if producto.tiene_vencidos %}disabled style="color: #e74c3c;"{% endif %}>
+                                            {{ producto.nombre_producto }} {% if producto.tiene_vencidos %}(Insumo Vencido 🔴){% endif %}
                                         </option>
                                         {% endif %}
                                     {% endfor %}
@@ -236,8 +239,11 @@
     <select name="producto_id[]" class="form-control select-producto" required onchange="actualizarComposicion_y_Precio(this)">
         <option value="">— Seleccione Bebida —</option>
         {% for bebida in bebidas %}
-        <option value="{{ bebida.id }}" data-precio="{{ bebida.precio }}" data-composicion='[]'>
-            {{ bebida.nombre_producto }}
+        <option value="{{ bebida.id }}" 
+                data-precio="{{ bebida.precio }}" 
+                data-composicion='[]'
+                {% if bebida.tiene_vencidos %}disabled style="color: #e74c3c;"{% endif %}>
+            {{ bebida.nombre_producto }} {% if bebida.tiene_vencidos %}(Insumo Vencido 🔴){% endif %}
         </option>
         {% endfor %}
     </select>
@@ -393,11 +399,16 @@
             if (elemento.type !== 'checkbox') {
                 let html = "";
                 composicion.forEach(mp => {
+                    const isBad = mp.stock <= 0 || mp.expired;
+                    const labelStyle = isBad ? 'style="border-color: #ef4444; background: #fef2f2;"' : '';
+                    const spanStyle = isBad ? 'style="color: #b91c1c; font-weight: bold;"' : '';
+                    const statusText = mp.expired ? '(¡VENCIDO!)' : (mp.stock <= 0 ? '(¡AGOTADO!)' : '');
+
                     html += `
-                        <label class="exclusion-item" ${mp.stock <= 0 ? 'style="border-color: #ef4444; background: #fef2f2;"' : ''}>
-                            <input type="checkbox" name="producto_exclusiones_${indice}[]" value="${mp.id}" onchange="actualizarComposicion_y_Precio(this)">
-                            <span ${mp.stock <= 0 ? 'style="color: #b91c1c; font-weight: bold;"' : ''}>
-                                Sin ${mp.nombre} ${mp.stock <= 0 ? '(¡AGOTADO!)' : ''}
+                        <label class="exclusion-item" ${labelStyle}>
+                            <input type="checkbox" name="producto_exclusiones_${indice}[]" value="${mp.id}" onchange="actualizarComposicion_y_Precio(this)" ${mp.expired ? 'checked disabled' : ''}>
+                            <span ${spanStyle}>
+                                Sin ${mp.nombre} ${statusText}
                             </span>
                         </label>
                     `;
@@ -489,6 +500,17 @@
     }
 
     document.getElementById('order-form').onsubmit = function(e) {
+        // 1. Validar que si se escribió un nombre, este exista en la lista (ID presente)
+        const clienteId = document.getElementById('txt_cliente_id').value;
+        const clienteNombre = document.getElementById('txt_cliente_search').value;
+        
+        if (clienteNombre && !clienteId) {
+            alert("No se puede registrar el pedido: El cliente '" + clienteNombre + "' no existe. Selecciónelo de la lista o regístrelo primero.");
+            e.preventDefault();
+            return false;
+        }
+
+        // 2. Validar Stock
         const filas = document.querySelectorAll('.fila-producto');
         let error = false;
         let msg = "";

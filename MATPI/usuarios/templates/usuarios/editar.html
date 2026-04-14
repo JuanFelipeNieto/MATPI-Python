@@ -18,6 +18,26 @@
         <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
             <div class="form-section">
                 <h3 style="margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; font-size: 1.1rem;">Información Básica</h3>
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario — Matpi{% endblock %}
+
+
+{% block content %}
+<div class="formulario-seccion profile-container">
+    <div class="profile-header" style="text-align: center; margin-bottom: 30px;">
+        <div class="profile-avatar" style="font-size: 4rem; margin-bottom: 10px;">👤</div>
+        <h1 style="margin-bottom: 5px;">Editar Perfil de Usuario</h1>
+        <p style="color: #666;">Actualización de información administrativa y personal</p>
+    </div>
+
+    <form method="POST" action="{% url 'procesar_edicion' %}" class="profile-form">
+        {% csrf_token %}
+        <input type="hidden" name="txt_id" value="{{ usuario.id }}">
+
+        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <div class="form-section">
+                <h3 style="margin-bottom: 15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px; font-size: 1.1rem;">Información Básica</h3>
                 
                 <div class="form-group">
                     <label>Documento de Identidad</label>
@@ -26,7 +46,7 @@
 
                 <div class="form-group">
                     <label for="txt_nombre">Nombre Completo</label>
-                    <input type="text" id="txt_nombre" name="txt_nombre" value="{{ usuario.nombre_completo }}" required placeholder="Ej: Juan Pérez">
+                    <input type="text" id="txt_nombre" name="txt_nombre" value="{{ usuario.nombre_completo }}" required placeholder="Ej: Juan Pérez" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
                 </div>
 
                 <div class="form-group">
@@ -120,7 +140,7 @@
                     {% if not es_admin %}<input type="hidden" name="txt_tipo_contrato" value="{{ usuario.cajero.tipo_contrato }}">{% endif %}
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="group_fecha_terminacion">
                     <label for="txt_fecha_terminacion">Fecha Terminación</label>
                     {% if es_admin %}
                     <input type="date" id="txt_fecha_terminacion" name="txt_fecha_terminacion" 
@@ -139,19 +159,19 @@
                 <div class="form-group">
                     <label for="txt_emergencia_nombre">Nombre Completo</label>
                     <input type="text" id="txt_emergencia_nombre" name="txt_emergencia_nombre" 
-                        value="{{ usuario.cajero.contacto_emergencia_nombre|default:'' }}" required>
+                        value="{{ usuario.cajero.contacto_emergencia_nombre|default:'' }}" required oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
                 </div>
 
                 <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
                         <label for="txt_emergencia_parentesco">Parentesco</label>
                         <input type="text" id="txt_emergencia_parentesco" name="txt_emergencia_parentesco" 
-                            value="{{ usuario.cajero.contacto_emergencia_parentesco|default:'' }}" required>
+                            value="{{ usuario.cajero.contacto_emergencia_parentesco|default:'' }}" required oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
                     </div>
                     <div>
                         <label for="txt_emergencia_numero">Teléfono</label>
                         <input type="text" id="txt_emergencia_numero" name="txt_emergencia_numero" 
-                            value="{{ usuario.cajero.contacto_emergencia_numero|default:'' }}" required>
+                            value="{{ usuario.cajero.contacto_emergencia_numero|default:'' }}" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
                 </div>
             </div>
@@ -191,7 +211,7 @@
             </button>
             
             <a href="{% url 'listar_usuarios' %}" class="btn btn-cancelar" style="padding: 12px 30px; font-size: 1rem; display: flex; align-items: center;">
-                Cancelar
+                🔙 Volver al listado
             </a>
             
             <a href="{% url 'dashboard' %}" class="btn" style="padding: 12px 30px; font-size: 1rem; display: flex; align-items: center; border: 1px solid #ddd; background: #fff; color: #333;">
@@ -204,18 +224,52 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const today = new Date();
-        
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
+        const formattedToday = `${yyyy}-${mm}-${dd}`;
         
-        // Fecha de Nacimiento: Máximo hace 18 años.
+        // 1. Fecha de Nacimiento: Máximo hace 18 años.
         const inputFechaNacimiento = document.getElementById('txt_fecha_nacimiento');
         if (inputFechaNacimiento) {
             const minYear = yyyy - 18;
             const maxDateNacimiento = `${minYear}-${mm}-${dd}`;
             inputFechaNacimiento.max = maxDateNacimiento;
         }
+
+        // 2. Mostrar/Ocultar fecha de terminación
+        const selectContrato = document.getElementById('txt_tipo_contrato');
+        const groupFechaTerminacion = document.getElementById('group_fecha_terminacion');
+
+        function toggleFechaTerminacion() {
+            if (selectContrato && selectContrato.value === 'Fijo') {
+                groupFechaTerminacion.style.display = 'block';
+            } else if (groupFechaTerminacion) {
+                groupFechaTerminacion.style.display = 'none';
+            }
+        }
+
+        if (selectContrato) {
+            selectContrato.addEventListener('change', toggleFechaTerminacion);
+            toggleFechaTerminacion();
+        }
+
+        // 3. Estado Automático si se cambia fecha de ingreso
+        const inputFechaIngreso = document.getElementById('txt_fecha_ingreso');
+        const selectEstado = document.getElementById('txt_estado');
+
+        function updateEstadoByFecha() {
+            if (inputFechaIngreso.value === formattedToday) {
+                if (selectEstado) selectEstado.value = 'Activo';
+            } else if (inputFechaIngreso.value > formattedToday) {
+                if (selectEstado) selectEstado.value = 'Inactivo';
+            }
+        }
+
+        if (inputFechaIngreso && selectEstado) {
+            inputFechaIngreso.addEventListener('change', updateEstadoByFecha);
+        }
     });
+
 </script>
 {% endblock %}

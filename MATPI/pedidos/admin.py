@@ -3,9 +3,9 @@ from .models import Pedido, DetallePedidoProducto
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
-    list_display  = ('id', 'fecha', 'estado', 'valor', 'metodo_pago', 'cajero', 'cliente')
+    list_display  = ('id', 'fecha', 'estado', 'valor', 'metodo_pago', 'usuario', 'cliente')
     search_fields = ('id', 'cliente__nombre_completo')
-    list_filter   = ('estado', 'metodo_pago', 'cajero')
+    list_filter   = ('estado', 'metodo_pago', 'usuario')
 
 @admin.register(DetallePedidoProducto)
 class DetallePedidoProductoAdmin(admin.ModelAdmin):

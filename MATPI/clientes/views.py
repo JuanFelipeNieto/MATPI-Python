@@ -1,17 +1,19 @@
 from django.shortcuts import render, redirect
 from .models import Cliente
-from usuarios.models import Cajero
+from usuarios.models import Cajero, Administrador
 from .servicices import obtener_localidades
+from django.db.models import Q, Count
 
-# Create your views here.
-
-from django.db.models import Q
+# Función auxiliar para validar si el ID en sesión es Administrador
+def check_admin(request):
+    id_sesion = request.session.get('usuario_id')
+    return Administrador.objects.filter(usuario_id=id_sesion).exists()
 
 def listar_clientes(request):
     buscar = request.GET.get('buscar', '')
     localidad_filtro = request.GET.get('localidad', '')
     
-    clientes = Cliente.objects.all()
+    clientes = Cliente.objects.annotate(total_pedidos=Count('pedidos'))
     
     if buscar:
         clientes = clientes.filter(
@@ -28,7 +30,8 @@ def listar_clientes(request):
         'clientes': clientes,
         'buscar': buscar,
         'localidad_filtro': localidad_filtro,
-        'localidades': localidades
+        'localidades': localidades,
+        'es_admin': check_admin(request)
     }
     return render(request, 'clientes/listar.html', data)
 
@@ -46,13 +49,14 @@ def registrar_cliente(request):
         direccion = request.POST.get('txt_direccion')
         localidad = request.POST.get('txt_localidad')
         
-        # Asignación automática del cajero basada en la sesión del usuario actual
+        # Asignación automática del usuario basada en la sesión del usuario actual
         usuario_id = request.session.get('usuario_id')
-        cajero = None
+        usuario_registrador = None
         if usuario_id:
+            from usuarios.models import Usuario
             try:
-                cajero = Cajero.objects.get(pk=usuario_id)
-            except Cajero.DoesNotExist:
+                usuario_registrador = Usuario.objects.get(pk=usuario_id)
+            except Usuario.DoesNotExist:
                 pass
 
         Cliente.objects.create(
@@ -61,7 +65,7 @@ def registrar_cliente(request):
             telefono=telefono,
             direccion=direccion,
             localidad=localidad,
-            cajero=cajero,
+            usuario=usuario_registrador,
         )
         return redirect('listar_clientes')
     return redirect('mostrar_registro_cliente')
@@ -71,7 +75,13 @@ def pre_editar_cliente(request, id):
     cajeros = Cajero.objects.all()
     cliente = Cliente.objects.get(pk=id)
     localidades = obtener_localidades()
-    data = {'cliente': cliente, 'cajeros': cajeros, 'localidades': localidades}
+    es_admin = check_admin(request)
+    data = {
+        'cliente': cliente, 
+        'cajeros': cajeros, 
+        'localidades': localidades,
+        'es_admin': es_admin
+    }
     return render(request, 'clientes/editar.html', data)
 
 
@@ -82,18 +92,25 @@ def editar_cliente(request):
         telefono = request.POST.get('txt_telefono')
         direccion = request.POST.get('txt_direccion')
         localidad = request.POST.get('txt_localidad')
-        cajero_id = request.POST.get('txt_cajero')
-
-        cajero = None
-        if cajero_id:
-            cajero = Cajero.objects.get(pk=cajero_id)
+        usuario_id_post = request.POST.get('txt_cajero')
 
         cliente = Cliente.objects.get(pk=id)
         cliente.nombre_completo = nombre
         cliente.telefono = telefono
         cliente.direccion = direccion
         cliente.localidad = localidad
-        cliente.cajero = cajero
+        
+        # Solo el administrador puede cambiar el cajero asignado
+        if check_admin(request):
+            if usuario_id_post:
+                from usuarios.models import Usuario
+                try:
+                    cliente.usuario = Usuario.objects.get(pk=usuario_id_post)
+                except:
+                    pass
+            else:
+                cliente.usuario = None
+                
         cliente.save()
     return redirect('listar_clientes')
 

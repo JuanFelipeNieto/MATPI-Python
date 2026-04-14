@@ -109,6 +109,7 @@ def eliminar_proveedor(request, id):
 # --- NUEVAS VISTAS PARA SUMINISTROS ---
 
 def mostrar_registro_suministro(request, id):
+    import json
     id_sesion = request.session.get('usuario_id')
     if not id_sesion:
         return redirect('login')
@@ -116,12 +117,21 @@ def mostrar_registro_suministro(request, id):
     es_admin = check_admin(request)
     proveedor = get_object_or_404(Proveedor, pk=id)
     materias_primas = MateriaPrima.objects.all()
+
+    # Obtener el precio más reciente de cada materia prima
+    precios_dict = {}
+    from materia_prima.models import Lote
+    for mp in materias_primas:
+        ultimo_lote = Lote.objects.filter(materia_prima=mp).order_by('-id').first()
+        if ultimo_lote:
+            precios_dict[mp.id] = float(ultimo_lote.precio_unidad or 0)
     
     return render(request, 'proveedores/registrar_suministro.html', {
         'proveedor': proveedor,
         'materias_primas': materias_primas,
         'es_admin': es_admin,
-        'fecha_actual': timezone.now()
+        'fecha_actual': timezone.now(),
+        'precios_json': json.dumps(precios_dict)
     })
 
 def registrar_suministro_materia(request):
@@ -160,7 +170,7 @@ def registrar_suministro_materia(request):
                     precio_unidad=precio or 0
                 )
                 
-                messages.success(request, f"Se han registrado {cantidad} de {materia.nombre_materia_prima} como un nuevo lote.")
+                messages.success(request, f"Se han registrado {cantidad} unidades de {materia.nombre_materia_prima} como un nuevo lote.")
         except Exception as e:
             messages.error(request, f"Error al registrar suministro: {str(e)}")
             

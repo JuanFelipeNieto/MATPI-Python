@@ -1,5 +1,5 @@
 from django.db import models
-from usuarios.models import Cajero
+from usuarios.models import Usuario
 
 class Cliente(models.Model):
     """Cliente registrado en el sistema."""
@@ -9,13 +9,13 @@ class Cliente(models.Model):
     telefono = models.CharField('Teléfono', max_length=14, blank=True, null=True)
     direccion = models.CharField('Dirección', max_length=100, blank=True, null=True)
     localidad = models.CharField('Localidad', max_length=50, blank=True, null=True)
-    cajero = models.ForeignKey(
-        Cajero,
+    usuario = models.ForeignKey(
+        Usuario,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         db_column='ID_Usr',
-        verbose_name='Cajero',
+        verbose_name='Registrado por',
         related_name='clientes'
     )
 

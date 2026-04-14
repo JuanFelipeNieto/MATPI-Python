@@ -42,19 +42,26 @@
         </div>
 
         <div class="form-group">
-            <label for="txt_cajero">Cajero</label>
-            <select id="txt_cajero" name="txt_cajero">
-                <option value="">— Sin cajero —</option>
-                {% for cajero in cajeros %}
-                <option value="{{ cajero.pk }}" {% if cliente.cajero_id == cajero.pk %}selected{% endif %}>
-                    {{ cajero }}
-                </option>
-                {% endfor %}
-            </select>
+            <label for="txt_cajero">Cajero que registró</label>
+            {% if es_admin %}
+                <select id="txt_cajero" name="txt_cajero">
+                    <option value="">— Sin cajero —</option>
+                    {% for cajero in cajeros %}
+                    <option value="{{ cajero.pk }}" {% if cliente.usuario_id == cajero.usuario_id %}selected{% endif %}>
+                        {{ cajero.usuario.nombre_completo }}
+                    </option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <div style="padding: 12px; background: #e9ecef; border-radius: 8px; border: 1px solid #ced4da; font-weight: bold;">
+                    {{ cliente.usuario.nombre_completo|default:"Sistema / No asignado" }}
+                </div>
+                {# No enviamos txt_cajero si no es admin para que el backend lo ignore #}
+            {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-guardar">Actualizar</button>
-        <a href="{% url 'listar_clientes' %}" class="btn btn-cancelar">Cancelar</a>
+        <button type="submit" class="btn btn-guardar">💾 Actualizar Cliente</button>
+        <a href="{% url 'listar_clientes' %}" class="btn btn-cancelar">🔙 Volver al listado</a>
     </form>
 </div>
 {% endblock %}

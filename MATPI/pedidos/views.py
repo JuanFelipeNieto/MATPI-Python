@@ -6,7 +6,7 @@ from decimal import Decimal
 import re
 import json
 from .models import Pedido, DetallePedidoProducto
-from usuarios.models import Cajero, Administrador
+from usuarios.models import Cajero, Administrador, Usuario
 from productos.models import Producto
 from materia_prima.models import MateriaPrima, DetalleProductoMateriaP, Lote
 from reservas.models import Reserva
@@ -31,7 +31,7 @@ def _generar_factura_si_necesario(pedido):
     """Genera factura automáticamente cuando un pedido se marca como completado."""
     from facturas.models import Factura
     from django.db.models import Max
-    if not pedido.estado and not pedido.facturas.exists():
+    if pedido.estado == 'Completado' and not pedido.facturas.exists():
         # Calcular próximo ID manual (pues no es AutoField en el modelo)
         max_id = Factura.objects.aggregate(max_id=Max('id'))['max_id'] or 0
         prox_id = max_id + 1
@@ -44,9 +44,28 @@ def _generar_factura_si_necesario(pedido):
             pedido=pedido,
         )
 
+def _cancelar_pedidos_abandonados():
+    """
+    Busca pedidos en estado 'Registrado' que llevan más de 10 minutos sin facturar
+    y los cancela automáticamente, restaurando el stock.
+    """
+    from datetime import timedelta
+    limite = timezone.now() - timedelta(minutes=10)
+    abandonados = Pedido.objects.filter(estado='Registrado', fecha__lt=limite)
+    
+    count = 0
+    for pedido in abandonados:
+        _restaurar_stock_pedido(pedido)
+        pedido.estado = 'Cancelado'
+        pedido.save()
+        count += 1
+    return count
+
 def listar_pedidos(request):
+    _cancelar_pedidos_abandonados() # Limpieza automática
     buscar = request.GET.get('buscar')
-    pedidos = Pedido.objects.all().order_by('-fecha', '-id')
+    # Excluimos los pedidos cancelados y los registrados (que esperan factura) por petición del usuario
+    pedidos = Pedido.objects.exclude(estado__in=['Cancelado', 'Registrado']).order_by('-fecha', '-id')
     
     if buscar:
         if buscar.isdigit():
@@ -188,15 +207,20 @@ def mostrar_registro_pedido(request):
     productos = Producto.objects.all()
     # Pre-cargar composiciones para el modal/detalles
     for p in productos:
+        # Determinar si el producto tiene algún ingrediente con lote actual vencido
+        detalles_prod = p.detalles_materia.all()
+        p.tiene_vencidos = any(d.materia_prima.is_insumo_vencido for d in detalles_prod)
+        
         p.composicion_json = json.dumps([
             {
                 'id': d.materia_prima.id, 
                 'nombre': d.materia_prima.nombre_materia_prima,
                 'stock': float(d.materia_prima.stock_total),
+                'expired': d.materia_prima.is_insumo_vencido,
                 # Enviamos la cantidad usada convertida a unidades para el cálculo del frontend
                 'cantidad_usada': float(d.cantidad_usada / d.materia_prima.cantidad_por_unidad) if not (d.unidad_medida == 'und' and getattr(d.materia_prima, 'unidad_medida', '') != 'und') else float(d.cantidad_usada)
             }
-            for d in p.detalles_materia.all()
+            for d in detalles_prod
         ])
         
     # Calcular el próximo número de orden
@@ -216,15 +240,23 @@ def registrar_pedido(request):
     if request.method == 'POST':
         fecha = timezone.now()
         usuario_id = request.session.get('usuario_id')
-        cajero = Cajero.objects.filter(pk=usuario_id).first() if usuario_id else None
+        usuario_registrador = Usuario.objects.filter(pk=usuario_id).first() if usuario_id else None
 
         reserva_id = request.POST.get('txt_reserva')
         reserva = Reserva.objects.filter(pk=reserva_id).first() if reserva_id else None
 
+        # 0. Validar Cliente (Opcional, pero si se escribe debe existir)
         cliente_id = request.POST.get('txt_cliente_id')
+        cliente_nombre_typed = request.POST.get('txt_cliente_search')
+        
+        # Si escribió algo pero no hay ID, el cliente no existe en la DB
+        if cliente_nombre_typed and not cliente_id:
+            messages.error(request, f"No se puede registrar el pedido: El cliente '{cliente_nombre_typed}' no existe. Por favor regístrelo primero.")
+            return redirect('mostrar_registro_pedido')
+        
         cliente = Cliente.objects.filter(pk=cliente_id).first() if cliente_id else None
 
-        # 0. Validar Stock antes de proceder
+        # 0.1 Validar Stock antes de proceder
         productos_ids = request.POST.getlist('producto_id[]')
         cantidades = request.POST.getlist('producto_cantidad[]')
         exclusiones_data = []
@@ -236,14 +268,22 @@ def registrar_pedido(request):
             messages.error(request, f"No se puede registrar el pedido: {error_msg}")
             return redirect('mostrar_registro_pedido')
 
-        # 1. Crear el Pedido primero
+        # 0.2 Validar que no haya productos con insumos vencidos (Seguridad contra manipulaciones)
+        for p_id in productos_ids:
+            if p_id:
+                prod = Producto.objects.get(pk=p_id)
+                if any(d.materia_prima.is_insumo_vencido for d in prod.detalles_materia.all()):
+                    messages.error(request, f"No se puede registrar el pedido: El producto '{prod.nombre_producto}' tiene ingredientes con lotes vencidos.")
+                    return redirect('mostrar_registro_pedido')
+
+        # 1. Crear el Pedido con estado 'Registrado' (No visible en cocina hasta facturar)
         pedido = Pedido.objects.create(
             fecha=fecha,
-            estado=True,
+            estado='Registrado',
             valor=0, # Se calculará abajo
             numero_orden=request.POST.get('txt_numero_orden'),
             metodo_pago=request.POST.get('txt_metodo_pago'),
-            cajero=cajero,
+            usuario=usuario_registrador,
             reserva=reserva,
             cliente=cliente,
         )
@@ -342,18 +382,28 @@ def pre_editar_pedido(request, id):
         return redirect('listar_pedidos')
 
     pedido = Pedido.objects.get(pk=id)
+    if pedido.estado in ['Preparacion', 'Completado', 'Cancelado']:
+        status_label = "en preparación" if pedido.estado == 'Preparacion' else pedido.estado.lower()
+        messages.warning(request, f"Los pedidos {status_label} no pueden ser editados. Solo es posible ver sus detalles.")
+        return redirect('detalles_pedido', id=id)
+    
     productos = Producto.objects.all()
     # Pre-cargar composiciones para el modal/detalles (igual que en registro)
     for p in productos:
+        # Determinar si el producto tiene algún ingrediente con lote actual vencido
+        detalles_prod = p.detalles_materia.all()
+        p.tiene_vencidos = any(d.materia_prima.is_insumo_vencido for d in detalles_prod)
+        
         p.composicion_json = json.dumps([
             {
                 'id': d.materia_prima.id, 
                 'nombre': d.materia_prima.nombre_materia_prima,
                 'stock': float(d.materia_prima.stock_total),
+                'expired': d.materia_prima.is_insumo_vencido,
                 # Enviamos la cantidad usada convertida a unidades para el cálculo del frontend
                 'cantidad_usada': float(d.cantidad_usada / d.materia_prima.cantidad_por_unidad) if not (d.unidad_medida == 'und' and getattr(d.materia_prima, 'unidad_medida', '') != 'und') else float(d.cantidad_usada)
             }
-            for d in p.detalles_materia.all()
+            for d in detalles_prod
         ])
 
     # Pre-procesar los detalles actuales para pasarlos al template de forma fácil
@@ -400,18 +450,24 @@ def editar_pedido(request):
         
         es_valido, error_msg = _validar_stock_pedido(productos_ids_nuevos, cantidades_nuevas, exclusiones_data_nuevas)
         if not es_valido:
-            # REVERTIR: Si no hay stock para el nuevo pedido, volvemos a descontar el stock original
+        # REVERTIR: Si no hay stock para el nuevo pedido, volvemos a descontar el stock original
             _descontar_stock_pedido(pedido)
             messages.error(request, f"No se pudo actualizar el pedido: {error_msg}")
             return redirect(f'/pedidos/editar/{pedido.id}/')
 
-        # 2. Actualizar datos básicos (Nota: fecha y numero_orden son inmutables en edición)
-        pedido.estado = request.POST.get('txt_estado', '1') == '1'
+        # 2. Actualizar datos básicos (Nota: El estado es inmutable en edición general)
         pedido.metodo_pago = request.POST.get('txt_metodo_pago')
         
-        pedido.cajero = Cajero.objects.get(pk=request.POST.get('txt_cajero')) if request.POST.get('txt_cajero') else None
+        usuario_id_post = request.POST.get('txt_cajero')
+        if usuario_id_post:
+            pedido.usuario = Usuario.objects.get(pk=usuario_id_post)
+            
         pedido.reserva = Reserva.objects.get(pk=request.POST.get('txt_reserva')) if request.POST.get('txt_reserva') else None
-        pedido.cliente = Cliente.objects.get(pk=request.POST.get('txt_cliente')) if request.POST.get('txt_cliente') else None
+        
+        # Validar Cliente en edición (Opcional, pero si se escribe debe existir)
+        cliente_id = request.POST.get('txt_cliente')
+        cliente = Cliente.objects.filter(pk=cliente_id).first() if cliente_id else None
+        pedido.cliente = cliente
         
         # 3. Borrar detalles antiguos (el stock ya se restauró en el paso 1 y validamos el nuevo)
         pedido.detalles.all().delete()
@@ -459,17 +515,18 @@ def editar_pedido(request):
     return redirect('listar_pedidos')
 
 def pedidos_pendientes(request):
-    """Muestra solo los pedidos que están en preparación (estado=True)."""
-    pedidos = Pedido.objects.filter(estado=True).order_by('fecha')
+    """Muestra solo los pedidos que están en preparación (estado='Preparacion')."""
+    _cancelar_pedidos_abandonados() # Limpieza automática
+    pedidos = Pedido.objects.filter(estado='Preparacion').order_by('fecha')
     return render(request, 'pedidos/pendientes.html', _obtener_contexto_rol(request, {
         'pedidos': pedidos,
         'ahora': timezone.now()
     }))
 
 def entregar_pedido(request, id):
-    """Marca un pedido como entregado (estado=False) y lo quita de la lista de pendientes."""
+    """Marca un pedido como entregado (estado='Completado') y lo quita de la lista de pendientes."""
     pedido = get_object_or_404(Pedido, pk=id)
-    pedido.estado = False
+    pedido.estado = 'Completado'
     pedido.fecha_entrega = timezone.now()
     pedido.save()
     
@@ -477,10 +534,28 @@ def entregar_pedido(request, id):
     messages.success(request, f"Pedido #{pedido.id} marcado como ENTREGADO.")
     return redirect('pedidos_pendientes')
 
+def cancelar_pedido(request, id):
+    """Marca un pedido como cancelado y RESTAURA el stock consumido."""
+    pedido = get_object_or_404(Pedido, pk=id)
+    
+    if pedido.estado == 'Registrado':
+        # Devolver ingredientes al inventario
+        _restaurar_stock_pedido(pedido)
+        
+        pedido.estado = 'Cancelado'
+        pedido.save()
+        messages.success(request, f"Pedido #{pedido.id} CANCELADO y stock restaurado.")
+    elif pedido.estado == 'Preparacion':
+        messages.error(request, "Un pedido en preparación (facturado) no puede ser cancelado.")
+    else:
+        messages.error(request, "Este pedido no puede ser cancelado en su estado actual.")
+        
+    return redirect('listar_pedidos')
+
 def cocina(request):
     """Vista diseñada para pantalla de cocina (solo visualización)."""
     # Filtramos pedidos activos, ordenados por antigüedad
-    pedidos = Pedido.objects.filter(estado=True).order_by('fecha')
+    pedidos = Pedido.objects.filter(estado='Preparacion').order_by('fecha')
     
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'pedidos/cocina_fragment.html', {'pedidos': pedidos})

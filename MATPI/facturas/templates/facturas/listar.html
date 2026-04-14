@@ -13,6 +13,7 @@
             <thead>
                 <tr>
                     <th>No° Factura</th>
+                    <th>Cliente</th>
                     <th>Valor Total</th>
                     <th>IVA (%)</th>
                     <th>Descripción</th>
@@ -24,6 +25,7 @@
                 {% for factura in facturas %}
                 <tr>
                     <td>{{ factura.id }}</td>
+                    <td>{{ factura.pedido.cliente.nombre_completo|default:"No aplica" }}</td>
                     <td>${{ factura.valor_total }}</td>
                     <td>{{ factura.iva|default:"—" }}</td>
                     <td>{{ factura.descripcion|default:"—" }}</td>
@@ -32,7 +34,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align:center;">No hay facturas registradas.</td>
+                    <td colspan="7" style="text-align:center;">No hay facturas registradas.</td>
                 </tr>
                 {% endfor %}
             </tbody>

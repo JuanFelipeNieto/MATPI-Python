@@ -25,7 +25,7 @@
         <tr>
 
             <td>{{ pd.fecha|date:"d/m/Y" }}</td>
-            <td>{{ pd.cajero.usuario.nombre_completo|default:"N/A" }}</td>
+            <td>{{ pd.usuario.nombre_completo|default:"N/A" }}</td>
             <td>{{ pd.cliente.nombre_completo|default:"N/A" }}</td>
             <td>{{ pd.metodo_pago }}</td>
             <td class="text-right">{{ pd.valor }}</td>

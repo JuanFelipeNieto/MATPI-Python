@@ -42,24 +42,35 @@
                     <td>{{ pedido.numero_orden }}</td>
                     <td>${{ pedido.valor }}</td>
                     <td>{{ pedido.metodo_pago }}</td>
-                    <td>{% if pedido.estado %}Activo{% else %}Completado{% endif %}</td>
                     <td>
-                        {% if not pedido.estado %}
+                        {% if pedido.estado == 'Registrado' %}
+                            <span class="badge" style="background: #e2e8f0; color: #475569;">Registrado</span>
+                        {% elif pedido.estado == 'Preparacion' or pedido.estado == '1' or pedido.estado == True %}
+                            <span class="badge badge-naranja">En preparación</span>
+                        {% elif pedido.estado == 'Completado' or pedido.estado == '0' or pedido.estado == False %}
+                            <span class="badge badge-verde">Completado</span>
+                        {% else %}
+                            <span class="badge" style="background: #ef4444; color: white;">Cancelado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if pedido.estado == 'Completado' or pedido.estado == '0' or pedido.estado == False %}
                             <span class="badge badge-verde">{{ pedido.tiempo_preparacion_total }}</span>
+                        {% elif pedido.estado == 'Cancelado' %}
+                            <span class="badge" style="background: #94a3b8; color: white;">N/A</span>
                         {% else %}
                             <span class="badge badge-naranja timer-preparacion" data-inicio="{{ pedido.fecha.isoformat }}">00m 00s</span>
                         {% endif %}
                     </td>
                     <td>{{ pedido.cliente.nombre_completo|default:"—" }}</td>
-                    <td>{{ pedido.cajero|default:"—" }}</td>
+                    <td>{{ pedido.usuario.nombre_completo|default:"—" }}</td>
                     <td class="acciones">
                         <a href="{% url 'detalles_pedido' pedido.id %}" class="btn-editar" style="background-color: #64748b;">Ver</a>
-                        <a href="{% url 'pre_editar_pedido' pedido.id %}" class="btn-editar">Editar</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" style="text-align:center;">No hay pedidos registrados.</td>
+                    <td colspan="9" style="text-align:center;">No hay pedidos registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>
