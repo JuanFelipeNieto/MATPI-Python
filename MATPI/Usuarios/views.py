@@ -3,7 +3,7 @@ import base64
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages

@@ -30,6 +30,7 @@
                     <th>Imagen</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
+                    <th>Composición</th>
                     <th>Cantidad en Stock</th>
                     <th>Precio</th>
                     {# Mantenemos el encabezado de acciones solo para el Admin #}
@@ -50,6 +51,15 @@
                     </td>
                     <td>{{ producto.nombre_producto }}</td>
                     <td>{{ producto.categoria|default:"—" }}</td>
+                    <td>
+                        {% for detalle in producto.detalles_materia.all %}
+                            <div style="font-size: 0.85em; margin-bottom: 2px; white-space: nowrap;">
+                                • {{ detalle.materia_prima.nombre_materia_prima }}: <strong>{{ detalle.cantidad_usada }}</strong> <small>{{ detalle.unidad_medida }}</small>
+                            </div>
+                        {% empty %}
+                            <span style="color: #999; font-style: italic; font-size: 0.85em;">Sin composición</span>
+                        {% endfor %}
+                    </td>
                     <td>{{ producto.cantidad }}</td>
                     <td>${{ producto.precio }}</td>
                     
@@ -65,7 +75,7 @@
                 {% empty %}
                 <tr>
                     {# El colspan se ajusta automáticamente según si hay columna de acciones o no #}
-                    <td colspan="{% if es_admin %}6{% else %}5{% endif %}" style="text-align:center;">
+                    <td colspan="{% if es_admin %}7{% else %}6{% endif %}" style="text-align:center;">
                         No hay productos registrados.
                     </td>
                 </tr>

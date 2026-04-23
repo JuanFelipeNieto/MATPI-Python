@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load l10n %}
 
 {% block title %}Registrar Comida — Matpi{% endblock %}
 
@@ -21,32 +20,32 @@
                 <table class="table" id="tabla-composicion">
                     <thead>
                         <tr>
-                            <th style="width: 35%;">Materia Prima</th>
-
-                            <th style="width: 30%;">Cantidad Total Usada</th>
-                            <th style="width: 15%;">Acciones</th>
+                            <th>Materia Prima</th>
+                            <th>Cantidad Base (Equivalencia)</th>
+                            <th>Unidad Medida</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="body-composicion">
                         <tr class="fila-materia">
                             <td>
                                 <select name="materia_id[]" class="form-control select-materia" required onchange="actualizarEquivalencia(this)">
-                                    <option value="" data-equiv="" data-unidad="">— Seleccione —</option>
+                                    <option value="" data-equiv="" data-unidad="">— Seleccione Materia Prima —</option>
                                     {% for materia in materias_primas %}
-                                        <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad|unlocalize }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }}</option>
+                                        <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }} ({{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }})</option>
                                     {% endfor %}
                                 </select>
                             </td>
-
                             <td>
-                                <div class="input-group" style="display: flex; gap: 5px; align-items: center;">
-                                    <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad" style="padding: 2px 8px;">-</button>
-                                    <input type="number" name="materia_cantidad[]" class="form-control input-equiv" value="" min="0.01" step="0.01" required oninput="actualizarUnidades(this)" placeholder="0" style="text-align: center;">
-                                    <button type="button" class="btn btn-outline-secondary btn-sumar" onclick="sumarUnidad(this)" title="Sumar 1 unidad" style="padding: 2px 8px;">+</button>
-                                    <input type="hidden" name="materia_unidad[]" class="input-unidad-texto" value="">
-                                    <span class="unit-label"></span>
+                                <div class="input-group" style="display: flex; gap: 5px;">
+                                    <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad">-</button>
+                                    <input type="number" name="materia_cantidad[]" class="form-control input-equiv" value="" min="0.01" step="0.01" required oninput="actualizarUnidades(this)" placeholder="0">
+                                    <button type="button" class="btn btn-outline-secondary btn-sumar" onclick="sumarUnidad(this)" title="Sumar 1 unidad">+</button>
                                 </div>
-                                <small class="msg-unidades text-success" style="display: block; margin-top: 5px; font-weight: bold;"></small>
+                                <small class="msg-unidades text-muted" style="display: block; margin-top: 5px;"></small>
+                            </td>
+                            <td>
+                                <input type="text" name="materia_unidad[]" class="form-control input-unidad-texto" readonly placeholder="-" style="background-color: #e9ecef;" title="Unidad de medida predeterminada">
                             </td>
                             <td>
                                 <button type="button" class="btn btn-cancelar btn-sm" onclick="eliminarFila(this)">Eliminar</button>
@@ -73,7 +72,7 @@
                 <option value="Combos">Combos</option>
                 <option value="Postres">Postres</option>
                 <option value="Adiciones">Adiciones</option>
-                <option value="Salchipapas">Salchipapas</option>
+                <option value="Salcgipapas">Salchipapas</option>
             </select>
         </div>
 
@@ -94,14 +93,12 @@
         const nuevaFila = filas[0].cloneNode(true);
         const select = nuevaFila.querySelector('select');
         const inputEquiv = nuevaFila.querySelector('.input-equiv');
-        const inputUnidadOculto = nuevaFila.querySelector('.input-unidad-texto');
-        const unitLabels = nuevaFila.querySelectorAll('.unit-label');
+        const inputUnidad = nuevaFila.querySelector('.input-unidad-texto');
         const msgUnidades = nuevaFila.querySelector('.msg-unidades');
         
         if(select) select.value = "";
         if(inputEquiv) inputEquiv.value = "";
-        if(inputUnidadOculto) inputUnidadOculto.value = "";
-        if(unitLabels) unitLabels.forEach(l => l.textContent = "");
+        if(inputUnidad) inputUnidad.value = "-";
         if(msgUnidades) msgUnidades.textContent = "";
         
         tbody.appendChild(nuevaFila);
@@ -123,18 +120,15 @@
         const unidad = opcion.getAttribute('data-unidad') || '';
         
         const inputCantidad = tr.querySelector('.input-equiv');
-        const inputUnidadOculto = tr.querySelector('.input-unidad-texto');
-        const labelsUnidad = tr.querySelectorAll('.unit-label');
+        const inputUnidadTexto = tr.querySelector('.input-unidad-texto');
         
         if (equiv > 0) {
             inputCantidad.value = equiv;
-            inputUnidadOculto.value = unidad;
-            labelsUnidad.forEach(label => label.textContent = unidad);
+            inputUnidadTexto.value = unidad;
             actualizarUnidades(inputCantidad);
         } else {
             inputCantidad.value = "";
-            inputUnidadOculto.value = "";
-            labelsUnidad.forEach(label => label.textContent = "");
+            inputUnidadTexto.value = "-";
             tr.querySelector('.msg-unidades').textContent = "";
         }
     }
@@ -143,24 +137,15 @@
         const tr = inputObj.closest('tr');
         const select = tr.querySelector('.select-materia');
         const opcion = select.options[select.selectedIndex];
-        if (!opcion || !opcion.value) return;
-
         const equivBase = parseFloat(opcion.getAttribute('data-equiv')) || 1;
+        
         const cantidadActual = parseFloat(inputObj.value) || 0;
         const numUnidades = (cantidadActual / equivBase).toFixed(2);
-        const floatUnidades = parseFloat(numUnidades);
         
         const msg = tr.querySelector('.msg-unidades');
         if (equivBase > 0 && cantidadActual > 0) {
-            if (floatUnidades > 1) {
-                msg.textContent = "⚠ Equivale a: " + floatUnidades + " unidad(es)";
-                msg.style.color = "#e67e22"; // Naranja fuerte
-                msg.classList.remove('text-success');
-            } else {
-                msg.textContent = "✔ Equivale a: " + floatUnidades + " unidad(es)";
-                msg.style.color = "";
-                msg.classList.add('text-success');
-            }
+            // parseFloat quita los ceros decimales innecesarios
+            msg.textContent = "Usando " + parseFloat(numUnidades) + " unidad(es)";
         } else {
             msg.textContent = "";
         }
@@ -190,7 +175,7 @@
         if (equivBase > 0) {
             let actual = parseFloat(inputObj.value) || 0;
             let nuevo = actual - equivBase;
-            if (nuevo < 1) { nuevo = 1; } 
+            if (nuevo < 0.01) { nuevo = 0.01; } // Evitamos números negativos o cero absoluto 
             inputObj.value = nuevo.toFixed(2);
             actualizarUnidades(inputObj);
         }

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'usuarios',
     'reportes',
     
+    # Librerías adicionales
     'rest_framework',
 ]
 

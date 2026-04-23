@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load l10n %}
 
 {% block title %}Registrar Comida — Matpi{% endblock %}
 
@@ -22,7 +21,7 @@
                     <thead>
                         <tr>
                             <th style="width: 35%;">Materia Prima</th>
-
+                            <th style="width: 20%;">Equiv. (Unidad Base)</th>
                             <th style="width: 30%;">Cantidad Total Usada</th>
                             <th style="width: 15%;">Acciones</th>
                         </tr>
@@ -33,11 +32,16 @@
                                 <select name="materia_id[]" class="form-control select-materia" required onchange="actualizarEquivalencia(this)">
                                     <option value="" data-equiv="" data-unidad="">— Seleccione —</option>
                                     {% for materia in materias_primas %}
-                                        <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad|unlocalize }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }}</option>
+                                        <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }}</option>
                                     {% endfor %}
                                 </select>
                             </td>
-
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <input type="text" class="form-control input-equiv-base" readonly placeholder="-" style="background-color: #f8f9fa; text-align: center;">
+                                    <span class="unit-label"></span>
+                                </div>
+                            </td>
                             <td>
                                 <div class="input-group" style="display: flex; gap: 5px; align-items: center;">
                                     <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad" style="padding: 2px 8px;">-</button>
@@ -93,12 +97,14 @@
         const filas = tbody.getElementsByClassName('fila-materia');
         const nuevaFila = filas[0].cloneNode(true);
         const select = nuevaFila.querySelector('select');
+        const inputEquivBase = nuevaFila.querySelector('.input-equiv-base');
         const inputEquiv = nuevaFila.querySelector('.input-equiv');
         const inputUnidadOculto = nuevaFila.querySelector('.input-unidad-texto');
         const unitLabels = nuevaFila.querySelectorAll('.unit-label');
         const msgUnidades = nuevaFila.querySelector('.msg-unidades');
         
         if(select) select.value = "";
+        if(inputEquivBase) inputEquivBase.value = "-";
         if(inputEquiv) inputEquiv.value = "";
         if(inputUnidadOculto) inputUnidadOculto.value = "";
         if(unitLabels) unitLabels.forEach(l => l.textContent = "");
@@ -122,16 +128,19 @@
         const equiv = parseFloat(opcion.getAttribute('data-equiv')) || 0;
         const unidad = opcion.getAttribute('data-unidad') || '';
         
+        const inputBase = tr.querySelector('.input-equiv-base');
         const inputCantidad = tr.querySelector('.input-equiv');
         const inputUnidadOculto = tr.querySelector('.input-unidad-texto');
         const labelsUnidad = tr.querySelectorAll('.unit-label');
         
         if (equiv > 0) {
+            inputBase.value = equiv;
             inputCantidad.value = equiv;
             inputUnidadOculto.value = unidad;
             labelsUnidad.forEach(label => label.textContent = unidad);
             actualizarUnidades(inputCantidad);
         } else {
+            inputBase.value = "-";
             inputCantidad.value = "";
             inputUnidadOculto.value = "";
             labelsUnidad.forEach(label => label.textContent = "");

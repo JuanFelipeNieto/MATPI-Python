@@ -27,7 +27,11 @@ def listar_reservas(request):
 
 def mostrar_registro_reserva(request):
     clientes = Cliente.objects.all()
-    return render(request, 'reservas/registrar.html', {'clientes': clientes})
+    ahora = timezone.now()
+    return render(request, 'reservas/registrar.html', {
+        'clientes': clientes,
+        'ahora': ahora
+    })
 
 
 def registrar_reserva(request):
@@ -83,7 +87,12 @@ def registrar_reserva(request):
 def pre_editar_reserva(request, id):
     clientes = Cliente.objects.all()
     reserva = Reserva.objects.get(pk=id)
-    return render(request, 'reservas/editar.html', {'reserva': reserva, 'clientes': clientes})
+    ahora = timezone.now()
+    return render(request, 'reservas/editar.html', {
+        'reserva': reserva, 
+        'clientes': clientes,
+        'ahora': ahora
+    })
 
 
 def editar_reserva(request):

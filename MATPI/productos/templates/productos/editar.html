@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load l10n %}
 
 {% block title %}Editar Producto — Matpi{% endblock %}
 
@@ -23,10 +24,10 @@
                 <table class="table" id="tabla-composicion">
                     <thead>
                         <tr>
-                            <th>Materia Prima</th>
-                            <th>Cantidad Base (Equivalencia)</th>
-                            <th>Unidad Medida</th>
-                            <th>Acciones</th>
+                            <th style="width: 35%;">Materia Prima</th>
+
+                            <th style="width: 30%;">Cantidad Total Usada</th>
+                            <th style="width: 15%;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="body-composicion">
@@ -37,22 +38,22 @@
                                     <select name="materia_id[]" class="form-control select-materia" required onchange="actualizarEquivalencia(this)">
                                         <option value="" data-equiv="" data-unidad="">— Seleccione —</option>
                                         {% for materia in materias_primas %}
-                                            <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}" {% if materia.id == item.materia_prima.id %}selected{% endif %}>
-                                                {{ materia.nombre_materia_prima }} ({{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }})
+                                            <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad|unlocalize }}" data-unidad="{{ materia.unidad_medida }}" {% if materia.id == item.materia_prima.id %}selected{% endif %}>
+                                                {{ materia.nombre_materia_prima }}
                                             </option>
                                         {% endfor %}
                                     </select>
                                 </td>
+
                                 <td>
-                                    <div class="input-group" style="display: flex; gap: 5px;">
-                                        <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad">-</button>
-                                        <input type="number" name="materia_cantidad[]" class="form-control input-equiv" value="{{ item.cantidad_usada }}" min="0.01" step="0.01" required oninput="actualizarUnidades(this)" placeholder="0">
-                                        <button type="button" class="btn btn-outline-secondary btn-sumar" onclick="sumarUnidad(this)" title="Sumar 1 unidad">+</button>
+                                    <div class="input-group" style="display: flex; gap: 5px; align-items: center;">
+                                        <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad" style="padding: 2px 8px;">-</button>
+                                        <input type="number" name="materia_cantidad[]" class="form-control input-equiv" value="{{ item.cantidad_usada|unlocalize }}" min="0.01" step="0.01" required oninput="actualizarUnidades(this)" placeholder="0" style="text-align: center;">
+                                        <button type="button" class="btn btn-outline-secondary btn-sumar" onclick="sumarUnidad(this)" title="Sumar 1 unidad" style="padding: 2px 8px;">+</button>
+                                        <input type="hidden" name="materia_unidad[]" class="input-unidad-texto" value="{{ item.unidad_medida }}">
+                                        <span class="unit-label">{{ item.unidad_medida }}</span>
                                     </div>
-                                    <small class="msg-unidades text-muted" style="display: block; margin-top: 5px;"></small>
-                                </td>
-                                <td>
-                                    <input type="text" name="materia_unidad[]" class="form-control input-unidad-texto" readonly value="{{ item.unidad_medida }}" style="background-color: #e9ecef;" title="Unidad de medida">
+                                    <small class="msg-unidades text-success" style="display: block; margin-top: 5px; font-weight: bold;"></small>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-cancelar btn-sm" onclick="eliminarFila(this)">Eliminar</button>
@@ -65,20 +66,20 @@
                                     <select name="materia_id[]" class="form-control select-materia" required onchange="actualizarEquivalencia(this)">
                                         <option value="" data-equiv="" data-unidad="">— Seleccione —</option>
                                         {% for materia in materias_primas %}
-                                            <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }} ({{ materia.cantidad_por_unidad }} {{ materia.unidad_medida }})</option>
+                                            <option value="{{ materia.id }}" data-equiv="{{ materia.cantidad_por_unidad|unlocalize }}" data-unidad="{{ materia.unidad_medida }}">{{ materia.nombre_materia_prima }}</option>
                                         {% endfor %}
                                     </select>
                                 </td>
+
                                 <td>
-                                    <div class="input-group" style="display: flex; gap: 5px;">
-                                        <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad">-</button>
-                                        <input type="number" name="materia_cantidad[]" class="form-control input-equiv" value="" min="0.01" step="0.01" required oninput="actualizarUnidades(this)" placeholder="0">
-                                        <button type="button" class="btn btn-outline-secondary btn-sumar" onclick="sumarUnidad(this)" title="Sumar 1 unidad">+</button>
+                                    <div class="input-group" style="display: flex; gap: 5px; align-items: center;">
+                                        <button type="button" class="btn btn-outline-secondary btn-restar" onclick="restarUnidad(this)" title="Restar 1 unidad" style="padding: 2px 8px;">-</button>
+                                        <input type="number" name="materia_cantidad[]" class="form-control input-equiv" value="" min="0.01" step="0.01" required oninput="actualizarUnidades(this)" placeholder="0" style="text-align: center;">
+                                        <button type="button" class="btn btn-outline-secondary btn-sumar" onclick="sumarUnidad(this)" title="Sumar 1 unidad" style="padding: 2px 8px;">+</button>
+                                        <input type="hidden" name="materia_unidad[]" class="input-unidad-texto" value="">
+                                        <span class="unit-label"></span>
                                     </div>
-                                    <small class="msg-unidades text-muted" style="display: block; margin-top: 5px;"></small>
-                                </td>
-                                <td>
-                                    <input type="text" name="materia_unidad[]" class="form-control input-unidad-texto" readonly placeholder="-" style="background-color: #e9ecef;" title="Unidad de medida">
+                                    <small class="msg-unidades text-success" style="display: block; margin-top: 5px; font-weight: bold;"></small>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-cancelar btn-sm" onclick="eliminarFila(this)">Eliminar</button>
@@ -89,7 +90,7 @@
                 </table>
             </div>
             <button type="button" class="btn btn-azul btn-sm" onclick="agregarFila()" style="margin-top: 10px;">+ Agregar Materia Prima</button>
-            <p><small>* El stock se recalculará automáticamente al guardar.</small></p>
+            <p><small>* El stock se recalculará automáticamente al guardar basándose en estas unidades.</small></p>
         </div>
 
         <!-- El stock se recalcula automáticamente -->
@@ -103,19 +104,18 @@
             <label for="txt_categoria">Categoría</label>
             <select id="txt_categoria" name="txt_categoria">
                 <option value="">— Seleccione —</option>
-                <option value="Hamburguesas" {% if producto.categoria == 'Hamburguesas' %}selected{% endif %}>Hamburguesas
-                </option>
-                <option value="Perros Calientes" {% if producto.categoria == 'Perros Calientes' %}selected{% endif %}>
-                    Perros Calientes</option>
-                <option value="Entradas y Snacks" {% if producto.categoria == 'Entradas y Snacks' %}selected{% endif %}>
-                    Entradas y Snacks</option>
+                <option value="Hamburguesas" {% if producto.categoria == 'Hamburguesas' %}selected{% endif %}>Hamburguesas</option>
+                <option value="Perros Calientes" {% if producto.categoria == 'Perros Calientes' %}selected{% endif %}>Perros Calientes</option>
+                <option value="Entradas y Snacks" {% if producto.categoria == 'Entradas y Snacks' %}selected{% endif %}>Entradas y Snacks</option>
                 <option value="Combos" {% if producto.categoria == 'Combos' %}selected{% endif %}>Combos</option>
                 <option value="Bebidas" {% if producto.categoria == 'Bebidas' %}selected{% endif %}>Bebidas</option>
                 <option value="Postres" {% if producto.categoria == 'Postres' %}selected{% endif %}>Postres</option>
                 <option value="Adiciones" {% if producto.categoria == 'Adiciones' %}selected{% endif %}>Adiciones</option>
+                <option value="Salchipapas" {% if producto.categoria == 'Salchipapas' %}selected{% endif %}>Salchipapas</option>
                 <option value="Salsas" {% if producto.categoria == 'Salsas' %}selected{% endif %}>Salsas</option>
             </select>
         </div>
+
         <div class="form-group">
             <label for="txt_imagen">Imagen del Producto</label>
             {% if producto.imagen %}
@@ -166,15 +166,18 @@
         const unidad = opcion.getAttribute('data-unidad') || '';
         
         const inputCantidad = tr.querySelector('.input-equiv');
-        const inputUnidadTexto = tr.querySelector('.input-unidad-texto');
+        const inputUnidadOculto = tr.querySelector('.input-unidad-texto');
+        const labelsUnidad = tr.querySelectorAll('.unit-label');
         
         if (equiv > 0) {
             inputCantidad.value = equiv;
-            inputUnidadTexto.value = unidad;
+            inputUnidadOculto.value = unidad;
+            labelsUnidad.forEach(label => label.textContent = unidad);
             actualizarUnidades(inputCantidad);
         } else {
             inputCantidad.value = "";
-            inputUnidadTexto.value = "-";
+            inputUnidadOculto.value = "";
+            labelsUnidad.forEach(label => label.textContent = "");
             tr.querySelector('.msg-unidades').textContent = "";
         }
     }
@@ -183,14 +186,24 @@
         const tr = inputObj.closest('tr');
         const select = tr.querySelector('.select-materia');
         const opcion = select.options[select.selectedIndex];
+        if (!opcion || !opcion.value) return;
+ 
         const equivBase = parseFloat(opcion.getAttribute('data-equiv')) || 1;
-        
         const cantidadActual = parseFloat(inputObj.value) || 0;
         const numUnidades = (cantidadActual / equivBase).toFixed(2);
+        const floatUnidades = parseFloat(numUnidades);
         
         const msg = tr.querySelector('.msg-unidades');
         if (equivBase > 0 && cantidadActual > 0) {
-            msg.textContent = "Usando " + parseFloat(numUnidades) + " unidad(es)";
+            if (floatUnidades > 1) {
+                msg.textContent = "⚠ Equivale a: " + floatUnidades + " unidad(es)";
+                msg.style.color = "#e67e22"; // Naranja fuerte
+                msg.classList.remove('text-success');
+            } else {
+                msg.textContent = "✔ Equivale a: " + floatUnidades + " unidad(es)";
+                msg.style.color = "";
+                msg.classList.add('text-success');
+            }
         } else {
             msg.textContent = "";
         }
@@ -220,16 +233,18 @@
         if (equivBase > 0) {
             let actual = parseFloat(inputObj.value) || 0;
             let nuevo = actual - equivBase;
-            if (nuevo < 0.01) { nuevo = 0.01; } // Evitamos números negativos o cero absoluto 
+            if (nuevo < 1) { nuevo = 1; } // Mínimo 1 en medida base
             inputObj.value = nuevo.toFixed(2);
             actualizarUnidades(inputObj);
         }
     }
-
+ 
     // Inicializar los indicadores de unidades al cargar la página para los datos preexistentes
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.input-equiv').forEach(input => {
-            if (input.value) actualizarUnidades(input);
+            if (input.value && input.value > 0) {
+                actualizarUnidades(input);
+            }
         });
     });
 </script>

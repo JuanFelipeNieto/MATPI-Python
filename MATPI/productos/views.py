@@ -64,9 +64,9 @@ def listar_productos(request):
     query = request.GET.get('buscar')
     
     if query:
-        productos = Producto.objects.filter(nombre_producto__icontains=query)
+        productos = Producto.objects.filter(nombre_producto__icontains=query).prefetch_related('detalles_materia__materia_prima')
     else:
-        productos = Producto.objects.all()
+        productos = Producto.objects.all().prefetch_related('detalles_materia__materia_prima')
     
     return render(request, 'productos/listar.html', {
         'productos': productos,
